@@ -66,7 +66,7 @@ export default function RootLayout() {
         screenOptions={({ route }) => ({
           headerShown: true,
           tabBarIcon: ({ focused, color, size }) => {
-            let iconName;
+            let iconName = ;
             if (route.name === 'Home') {
               iconName = focused ? 'home' : 'home-outline';
             } else if (route.name === 'Grocery List') {
