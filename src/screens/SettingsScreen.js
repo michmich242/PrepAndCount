@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Switch, TouchableOpacity, Alert } from 'react-n
 import { StatusBar } from 'expo-status-bar';
 import { Context } from '../../app/_layout'
 import { useContext } from "react"
+import { Ionicons } from '@expo/vector-icons';
 
 export default function SettingsScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
@@ -25,8 +26,19 @@ export default function SettingsScreen() {
   };
 
   return (
-    <View style={[styles.container, {backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff'}]}>
+    <View style={[styles.container, {backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff'}] }>
       <Text style={[styles.header, {color: darkModeEnabled ?  '#fff' : '#333'}]}>Settings</Text>
+      {/* Set Meal Times */}
+      <View style={[styles.setting, {backgroundColor: darkModeEnabled ?  '#1c1b1a' : '#fff'}]}>
+        <Text style={[styles.settingText, {color: darkModeEnabled ? "#fff" : "#333"}]}>Set Meal Times</Text>
+
+        <Ionicons 
+        name={'caret-forward-outline'} 
+        size={25} 
+        style={{ marginRight: 10 }} 
+        color={darkModeEnabled ? '#fff' : '#333'} 
+        />        
+      </View>
 
       {/* Notifications Setting */}
       <View style={[styles.setting, {backgroundColor: darkModeEnabled ?  '#1c1b1a' : '#fff'}]}>
