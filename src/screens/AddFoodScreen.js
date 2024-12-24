@@ -7,6 +7,11 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
+import { Context } from '../../app/_layout'
+import { useContext } from "react"
+import { DrawerLayout } from 'react-native-gesture-handler';
+
+
 
 export default function AddFoodScreen() {
   const [foodItems, setFoodItems] = useState([
@@ -16,6 +21,7 @@ export default function AddFoodScreen() {
     { id: '4', name: 'Avocado', calories: 160, protein: 2, carbs: 9, fat: 15 },
   ]);
 
+  const [darkModeEnabled, setDarkModeEnabled] = useContext(Context);
   const [searchText, setSearchText] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
 
@@ -34,12 +40,12 @@ export default function AddFoodScreen() {
   );
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Add Food</Text>
+    <View style={[styles.container, {backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff"}]}>
+      <Text style={[styles.header, {color: darkModeEnabled ? "#fff" : "#333"}]}>Add Food</Text>
 
       {/* Search Bar */}
       <TextInput
-        style={styles.searchBar}
+        style={[styles.searchBar, {backgroundColor: darkModeEnabled ? "#333" : "#fff"}, {color: darkModeEnabled ? "#fff" : "#333"}]}
         placeholder="Search food..."
         placeholderTextColor="#aaa"
         value={searchText}
@@ -51,8 +57,8 @@ export default function AddFoodScreen() {
         data={filteredFoodItems}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.foodItem}>
-            <Text style={styles.foodText}>{item.name}</Text>
+          <View style={[styles.foodItem, {backgroundColor: darkModeEnabled ? "#333" : "#fff"}]}>
+            <Text style={[styles.foodText, {color: darkModeEnabled ? "#fff" : "#333"}]}>{item.name}</Text>
             <TouchableOpacity
               style={styles.addButton}
               onPress={() => handleAddFood(item)}
@@ -67,13 +73,13 @@ export default function AddFoodScreen() {
       />
 
       {/* Selected Food Items */}
-      <Text style={styles.selectedHeader}>Selected Food</Text>
+      <Text style={[styles.selectedHeader, {color: darkModeEnabled ? "#fff" : "#333"}]}>Selected Food</Text>
       <FlatList
         data={selectedItems}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.selectedItem}>
-            <Text style={styles.foodText}>
+          <View style={[styles.selectedItem, {backgroundColor: darkModeEnabled ? "#333" : "#fff"}]}>
+            <Text style={[styles.foodText, {color: darkModeEnabled ? "#fff" : "#333"}]}>
               {item.name} - {item.calories} cal
             </Text>
             <TouchableOpacity

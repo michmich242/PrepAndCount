@@ -12,6 +12,9 @@ import {
 } from 'react-native';
 import { PieChart } from 'react-native-chart-kit';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Context } from '../../app/_layout'
+import { useContext } from "react"
+import { DarkTheme } from '@react-navigation/native';
 
 // Dynamically get the screen width for responsive chart scaling
 const screenWidth = Dimensions.get('window').width;
@@ -23,6 +26,7 @@ export default function HomeScreen() {
   const [meals, setMeals] = useState({}); // Stores all meal data, organized by date
   const [mealText, setMealText] = useState(''); // Temporary state for the meal item being added
   const [mealType, setMealType] = useState('Breakfast'); // Tracks the selected meal type (Breakfast, Lunch, Dinner)
+  const [darkModeEnabled] = useContext(Context);
 
   // Toggles the visibility of the modal
   const toggleModal = () => {
@@ -42,19 +46,19 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff'}]}>
       {/* Calendar Section */}
-      <View style={styles.calendarSection}>
-        <Text style={styles.sectionHeader}>Calendar</Text>
+      <View style={[styles.calendarSection, {backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff'}]}>
+        <Text style={[styles.sectionHeader, {color: darkModeEnabled ? "#fff" : "#333"}]}>Calendar</Text>
         <TouchableOpacity style={styles.calendarPlaceholder} onPress={toggleModal}>
-          <Text style={styles.placeholderText}>Tap to Plan Meals</Text>
+          <Text style={[styles.placeholderText, {backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff'}, {color: darkModeEnabled ? '#fff' : "#333"}]}>Tap to Plan Meals</Text>
         </TouchableOpacity>
       </View>
 
       {/* Meal Planning Modal */}
       <Modal visible={modalVisible} transparent={true} animationType="slide">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
+        <View style={[styles.modalContainer, {backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff'}]}>
+          <View style={[styles.modalContent, {backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff"}]}>
             <Text style={styles.modalHeader}>Plan Meals for {selectedDate.toDateString()}</Text>
 
             {/* Date Picker */}
@@ -71,14 +75,14 @@ export default function HomeScreen() {
             />
 
             {/* Meal Type Selector */}
-            <View style={styles.mealTypeContainer}>
+            <View style={[styles.mealTypeContainer, {backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff"}]}>
               {['Breakfast', 'Lunch', 'Dinner'].map((type) => (
                 <TouchableOpacity
                   key={type}
                   style={[styles.mealTypeButton, mealType === type && styles.activeMealType]}
                   onPress={() => setMealType(type)} // Update the selected meal type
                 >
-                  <Text style={styles.mealTypeText}>{type}</Text>
+                  <Text style={[styles.mealTypeText, {backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff"}]}>{type}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -110,20 +114,20 @@ export default function HomeScreen() {
       </Modal>
 
       {/* Today's Meals and Macros Section */}
-      <View style={styles.mealsAndMacros}>
-        <View style={styles.mealsSection}>
-          <Text style={styles.sectionHeader}>Today's Meals</Text>
-          <Text style={styles.mealText}>☑ Breakfast</Text>
-          <Text style={styles.mealText}>☐ Lunch</Text>
-          <Text style={styles.mealText}>☐ Dinner</Text>
+      <View style={[styles.mealsAndMacros, {backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff"}]}>
+        <View style={[styles.mealsSection, {backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff"}]}>
+          <Text style={[styles.sectionHeader, {color: darkModeEnabled ? "#fff" : "#333"}]}>Today's Meals</Text>
+          <Text style={[styles.mealText, {color: darkModeEnabled ? "#fff" : "#333"}]}>☑ Breakfast</Text>
+          <Text style={[styles.mealText, {color: darkModeEnabled ? "#fff" : "#333"}]}>☐ Lunch</Text>
+          <Text style={[styles.mealText, {color: darkModeEnabled ? "#fff" : "#333"}]}>☐ Dinner</Text>
         </View>
         <View style={styles.macrosSection}>
-          <Text style={styles.sectionHeader}>Macros</Text>
+          <Text style={[styles.sectionHeader, {color: darkModeEnabled ? "#fff" : "#333"}]}>Macros</Text>
           <PieChart
             data={[
-              { name: 'Protein', population: 30, color: 'blue', legendFontColor: '#333', legendFontSize: 12 },
-              { name: 'Carbs', population: 40, color: 'red', legendFontColor: '#333', legendFontSize: 12 },
-              { name: 'Fats', population: 30, color: 'yellow', legendFontColor: '#333', legendFontSize: 12 },
+              { name: 'Protein', population: 30, color: 'blue', legendFontColor: darkModeEnabled ? "#fff" : "#333", legendFontSize: 12 },
+              { name: 'Carbs', population: 40, color: 'red', legendFontColor: darkModeEnabled ? "#fff" : "#333", legendFontSize: 12 },
+              { name: 'Fats', population: 30, color: 'yellow', legendFontColor: darkModeEnabled ? "#fff" :"#333", legendFontSize: 12 },
             ]}
             width={screenWidth * 0.8} // Chart width scales with screen size
             height={150}
@@ -147,14 +151,13 @@ export default function HomeScreen() {
 
 // Styles for the UI components
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#f9f9f9' },
-  calendarSection: { marginBottom: 20 },
-  sectionHeader: { fontSize: 22, fontWeight: 'bold', color: '#333', marginBottom: 10 },
+  container: { flex: 1, padding: 20},
+  calendarSection: { marginBottom: 20},
+  sectionHeader: { fontSize: 22, fontWeight: 'bold', marginBottom: 10 },
   calendarPlaceholder: {
     height: 120,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#e0e0e0',
     borderRadius: 10,
     shadowColor: '#000',
     shadowOpacity: 0.1,
@@ -162,8 +165,9 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
     padding: 10,
+    backGroundColor: '#83d62f'
   },
-  placeholderText: { color: '#333', fontStyle: 'italic', fontWeight: '600' },
+  placeholderText: {  fontStyle: 'italic', fontWeight: '600',},
   modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' },
   modalContent: { backgroundColor: '#fff', padding: 20, borderRadius: 10, width: '90%' },
   modalHeader: { fontSize: 20, fontWeight: 'bold', marginBottom: 10 },

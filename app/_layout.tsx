@@ -7,13 +7,14 @@ import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import 'react-native-reanimated';
+import React from "react"
 
 import HomeScreen from '../src/screens/HomeScreen';
 import GroceryListScreen from '../src/screens/GroceryListScreen';
 import SettingsScreen from '../src/screens/SettingsScreen';
 import AddFoodScreen from '../src/screens/AddFoodScreen';
 import { useColorScheme } from '@/hooks/useColorScheme';
-
+import {useState} from 'react';
 
 
 // Prevent the splash screen from auto-hiding before asset loading is complete
@@ -21,8 +22,12 @@ SplashScreen.preventAutoHideAsync();
 
 const Tab = createBottomTabNavigator();
 
+export const Context = React.createContext({});
+
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+
+  const [darkModeEnabled, setDarkModeEnabled] = useState(false);
+
 
   // Load custom fonts
   const [loaded] = useFonts({
@@ -39,34 +44,17 @@ export default function RootLayout() {
     return null;
   }
 
-  // Customize theme
-  const CustomDarkTheme = {
-    ...DarkTheme,
-    colors: {
-      ...DarkTheme.colors,
-      background: '#121212',
-      text: '#ffffff',
-    },
-  };
 
-  const CustomDefaultTheme = {
-    ...DefaultTheme,
-    colors: {
-      ...DefaultTheme.colors,
-      background: '#f5f5f5',
-      text: '#000000',
-    },
-  };
+
+  
 
   return (
-    <ThemeProvider
-      value={colorScheme === 'dark' ? CustomDarkTheme : CustomDefaultTheme}
-    >
+    <Context.Provider value={[darkModeEnabled, setDarkModeEnabled]}>
       <Tab.Navigator
         screenOptions={({ route }) => ({
           headerShown: true,
           tabBarIcon: ({ focused, color, size }) => {
-            let iconName = ;
+            let iconName = '';
             if (route.name === 'Home') {
               iconName = focused ? 'home' : 'home-outline';
             } else if (route.name === 'Grocery List') {
@@ -81,10 +69,12 @@ export default function RootLayout() {
           tabBarActiveTintColor: '#007aff',
           tabBarInactiveTintColor: 'gray',
           tabBarStyle: {
-            backgroundColor: '#fff',
+            backgroundColor: darkModeEnabled ? "#1c1b1a" :  "#fff",
             borderTopWidth: 0,
             elevation: 5,
           },
+          headerStyle: {backgroundColor: darkModeEnabled ?  "#1c1b1a" :  "#fff"},
+          headerTintColor: darkModeEnabled ? "#fff" :  "#1c1b1a"
         })}
       >
         <Tab.Screen name="Home" component={HomeScreen} />
@@ -93,6 +83,6 @@ export default function RootLayout() {
         <Tab.Screen name="Settings" component={SettingsScreen} />
       </Tab.Navigator>
       <StatusBar style="auto" />
-    </ThemeProvider>
+    </Context.Provider>
   );
 }

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Switch, TouchableOpacity, Alert } from 'react-native';
-
+import { StatusBar } from 'expo-status-bar';
+import { Context } from '../../app/_layout'
+import { useContext } from "react"
 
 export default function SettingsScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const [darkModeEnabled, setDarkModeEnabled] = useState(false);
+  const [darkModeEnabled, setDarkModeEnabled] = useContext(Context);
 
   const toggleNotifications = () =>
     setNotificationsEnabled((prevState) => !prevState);
@@ -23,12 +25,12 @@ export default function SettingsScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Settings</Text>
+    <View style={[styles.container, {backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff'}]}>
+      <Text style={[styles.header, {color: darkModeEnabled ?  '#fff' : '#333'}]}>Settings</Text>
 
       {/* Notifications Setting */}
-      <View style={styles.setting}>
-        <Text style={styles.settingText}>Enable Notifications</Text>
+      <View style={[styles.setting, {backgroundColor: darkModeEnabled ?  '#1c1b1a' : '#fff'}]}>
+        <Text style={[styles.settingText, {color: darkModeEnabled ? "#fff" : "#333"}]}>Enable Notifications</Text>
         <Switch
           value={notificationsEnabled}
           onValueChange={toggleNotifications}
@@ -38,14 +40,15 @@ export default function SettingsScreen() {
       </View>
 
       {/* Dark Mode Setting */}
-      <View style={styles.setting}>
-        <Text style={styles.settingText}>Enable Dark Mode</Text>
+      <View style={[styles.setting, {backgroundColor:  darkModeEnabled ? "#1c1b1a" : "#fff"}]}>
+        <Text style={[styles.settingText, {color: darkModeEnabled ? "#fff" : "#333"}]}>Enable Dark Mode</Text>
         <Switch
           value={darkModeEnabled}
           onValueChange={toggleDarkMode}
           trackColor={{ false: '#ccc', true: '#007aff' }}
           thumbColor={darkModeEnabled ? '#007aff' : '#f4f3f4'}
         />
+        <StatusBar style={darkModeEnabled ? "light" : "dark"}/>
       </View>
 
       {/* Reset Settings Button */}
@@ -60,12 +63,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#f9f9f9',
   },
   header: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 20,
     textAlign: 'center',
   },
@@ -79,7 +80,6 @@ const styles = StyleSheet.create({
   },
   settingText: {
     fontSize: 18,
-    color: '#333',
   },
   resetButton: {
     marginTop: 30,

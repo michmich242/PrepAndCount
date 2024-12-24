@@ -9,10 +9,14 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { Context } from '../../app/_layout'
+import { useContext } from "react"
+
 
 export default function GroceryListScreen() {
   const [items, setItems] = useState([]);
   const [text, setText] = useState('');
+  const [darkModeEnabled, setDarkModeEnabled] = useContext(Context);
 
   const addItem = () => {
     if (text.trim() !== '') {
@@ -36,17 +40,19 @@ export default function GroceryListScreen() {
     setItems(items.filter((item) => item.id !== id));
   };
 
+
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
+      style={[styles.container, {backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff"}]}
     >
-      <Text style={styles.header}>Grocery List</Text>
+      <Text style={[styles.header, {color: darkModeEnabled ? "#fff" : "#333"}]}>Grocery List</Text>
 
       {/* Input Section */}
-      <View style={styles.inputContainer}>
+      <View style={[styles.inputContainer, {backgroundColor: darkModeEnabled ? "#333" : "#fff"}]}>
         <TextInput
-          style={styles.input}
+          style={[styles.input, {backgroundColor: darkModeEnabled ? "#333" : "#fff"}, {color: darkModeEnabled ? "#fff" : "#050505"}]}
           placeholder="Add a grocery item"
           placeholderTextColor="#aaa"
           value={text}
@@ -62,7 +68,7 @@ export default function GroceryListScreen() {
         data={items}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.itemContainer}>
+          <View style={[styles.itemContainer, {backgroundColor: darkModeEnabled ? "#333" : "#fff"}, {color: darkModeEnabled ? "#333" : "#fff"}]}>
             <TouchableOpacity
               onPress={() => toggleComplete(item.id)}
               style={styles.checkbox}
@@ -71,7 +77,7 @@ export default function GroceryListScreen() {
             </TouchableOpacity>
             <Text
               style={[
-                styles.itemText,
+                styles.itemText, {color: darkModeEnabled ? "#fff" : "#333"},
                 item.completed && styles.itemTextCompleted,
               ]}
             >
