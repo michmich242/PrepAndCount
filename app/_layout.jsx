@@ -13,20 +13,29 @@ import HomeScreen from '../src/screens/HomeScreen';
 import GroceryListScreen from '../src/screens/GroceryListScreen';
 import SettingsScreen from '../src/screens/SettingsScreen';
 import AddFoodScreen from '../src/screens/AddFoodScreen';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import ChangeMealTimesScreen from '../src/screens/MealTimesScreen'
 import {useState} from 'react';
+
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack'
+
 
 
 // Prevent the splash screen from auto-hiding before asset loading is complete
 SplashScreen.preventAutoHideAsync();
 
 const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
+
 
 export const Context = React.createContext({});
 
 export default function RootLayout() {
 
   const [darkModeEnabled, setDarkModeEnabled] = useState(false);
+  const [breakfastTime, setBreakfastTime] = useState('9:00')
+  const [lunchTime, setLunchTime] = useState('12:00')
+  const [dinnerTime, setDinnerTime] = useState('6:00');
 
 
   // Load custom fonts
@@ -46,10 +55,8 @@ export default function RootLayout() {
 
 
 
-  
-
   return (
-    <Context.Provider value={[darkModeEnabled, setDarkModeEnabled]}>
+    <Context.Provider value={[darkModeEnabled, setDarkModeEnabled, breakfastTime, setBreakfastTime, lunchTime, setLunchTime, dinnerTime, setDinnerTime]}>
       <Tab.Navigator
         screenOptions={({ route }) => ({
           headerShown: true,
