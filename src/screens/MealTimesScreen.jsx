@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, StyleSheet, Button } from 'react-native';
+import { Context } from '../../app/_layout';
+
 
 export default function ChangeMealTimesScreen({ navigation }) {
+  const [darkModeEnabled, setDarkModeEnabled] = useContext(Context);
+  
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Change Meal Times</Text>
+    <View style={[styles.container, { backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff" }]}>
+      <Text style={[styles.text, { color: darkModeEnabled ? "#fff" : "#1c1b1a" }]}>Change Meal Times</Text>
       <Button title="Go Back" onPress={() => navigation.goBack()} />
     </View>
   );

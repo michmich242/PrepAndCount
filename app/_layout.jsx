@@ -56,7 +56,7 @@ export default function RootLayout() {
   const SettingsStack = () => (
     <Stack.Navigator>
       <Stack.Screen options={{headerShown: false}} name="Settings" component={SettingsScreen}/>
-      <Stack.Screen name= "Change Meal Times" component={ChangeMealTimesScreen}/>
+      <Stack.Screen options={{headerStyle: {backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff"}, headerTintColor: darkModeEnabled ? "#fff" : "#333"}} name= "Change Meal Times" component={ChangeMealTimesScreen}/>
     </Stack.Navigator>
   )
 
