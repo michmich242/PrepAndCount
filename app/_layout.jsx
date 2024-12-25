@@ -53,7 +53,12 @@ export default function RootLayout() {
     return null;
   }
 
-
+  const SettingsStack = () => (
+    <Stack.Navigator>
+      <Stack.Screen options={{headerShown: false}} name="Settings" component={SettingsScreen}/>
+      <Stack.Screen name= "Change Meal Times" component={ChangeMealTimesScreen}/>
+    </Stack.Navigator>
+  )
 
   return (
     <Context.Provider value={[darkModeEnabled, setDarkModeEnabled, breakfastTime, setBreakfastTime, lunchTime, setLunchTime, dinnerTime, setDinnerTime]}>
@@ -87,7 +92,7 @@ export default function RootLayout() {
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="Grocery List" component={GroceryListScreen} />
         <Tab.Screen name="Add Food" component={AddFoodScreen} />
-        <Tab.Screen name="Settings" component={SettingsScreen} />
+        <Tab.Screen name="Settings" component={SettingsStack} />
       </Tab.Navigator>
       <StatusBar style="auto" />
     </Context.Provider>
