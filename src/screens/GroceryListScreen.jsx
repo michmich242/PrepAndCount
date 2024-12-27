@@ -9,14 +9,14 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { Context } from '../../app/_layout'
+import { DMContext } from '../../app/_layout'
 import { useContext } from "react"
 
 
 export default function GroceryListScreen() {
   const [items, setItems] = useState([]);
   const [text, setText] = useState('');
-  const [darkModeEnabled, setDarkModeEnabled] = useContext(Context);
+  const [darkModeEnabled, setDarkModeEnabled] = useContext(DMContext);
 
   const addItem = () => {
     if (text.trim() !== '') {

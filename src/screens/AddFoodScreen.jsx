@@ -7,9 +7,8 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import { Context } from '../../app/_layout'
+import { DMContext } from '../../app/_layout'
 import { useContext } from "react"
-import { DrawerLayout } from 'react-native-gesture-handler';
 
 
 
@@ -21,7 +20,7 @@ export default function AddFoodScreen() {
     { id: '4', name: 'Avocado', calories: 160, protein: 2, carbs: 9, fat: 15 },
   ]);
 
-  const [darkModeEnabled, setDarkModeEnabled] = useContext(Context);
+  const [darkModeEnabled, setDarkModeEnabled] = useContext(DMContext);
   const [searchText, setSearchText] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
 

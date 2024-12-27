@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { PieChart } from 'react-native-chart-kit';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Context } from '../../app/_layout'
+import { DMContext } from '../../app/_layout'
 import { useContext } from "react"
 import { DarkTheme } from '@react-navigation/native';
 
@@ -26,7 +26,7 @@ export default function HomeScreen() {
   const [meals, setMeals] = useState({}); // Stores all meal data, organized by date
   const [mealText, setMealText] = useState(''); // Temporary state for the meal item being added
   const [mealType, setMealType] = useState('Breakfast'); // Tracks the selected meal type (Breakfast, Lunch, Dinner)
-  const [darkModeEnabled] = useContext(Context);
+  const [darkModeEnabled] = useContext(DMContext);
 
   // Toggles the visibility of the modal
   const toggleModal = () => {

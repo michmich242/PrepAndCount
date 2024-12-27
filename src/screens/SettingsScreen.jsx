@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Switch, TouchableOpacity, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { Context } from '../../app/_layout';
+import { DMContext } from '../../app/_layout';
 import { useContext } from "react";
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
 export default function SettingsScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const [darkModeEnabled, setDarkModeEnabled] = useContext(Context);
+  const [darkModeEnabled, setDarkModeEnabled] = useContext(DMContext);
   const navigation = useNavigation();
 
   const toggleNotifications = () =>
@@ -30,7 +30,7 @@ export default function SettingsScreen() {
   return (
     <View style={[styles.container, { backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff' }]}>
       <Text style={[styles.header, { color: darkModeEnabled ? '#fff' : '#333' }]}>Settings</Text>
-
+      
       {/* Set Meal Times */}
       <TouchableOpacity onPress={() => navigation.navigate('Change Meal Times')} style={styles.setting}>
         <Text
