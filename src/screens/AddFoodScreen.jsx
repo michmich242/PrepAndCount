@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,20 +9,69 @@ import {
 } from 'react-native';
 import { DMContext } from '../../app/_layout'
 import { useContext } from "react"
-
+import { callAutoComplete } from '../../callAPI';
+import { callSearch } from '../../callAPI';
 
 
 export default function AddFoodScreen() {
-  const [foodItems, setFoodItems] = useState([
-    { id: '1', name: 'Chicken Breast', calories: 165, protein: 31, carbs: 0, fat: 3.6 },
-    { id: '2', name: 'Brown Rice', calories: 215, protein: 5, carbs: 44, fat: 1.8 },
-    { id: '3', name: 'Broccoli', calories: 55, protein: 4, carbs: 11, fat: 0.6 },
-    { id: '4', name: 'Avocado', calories: 160, protein: 2, carbs: 9, fat: 15 },
-  ]);
+  const [foodSuggestions, setFoodSuggestions] = useState([]);
+
+  const [foodItems, setFoodItems] = useState([{
+    food_id: null,
+    food_name: "none",
+    brand_name: "none",
+    food_type: "none",
+    food_url: "none",
+    servings:{
+      serving: []
+    }
+  }]);
 
   const [darkModeEnabled, setDarkModeEnabled] = useContext(DMContext);
   const [searchText, setSearchText] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
+
+  useEffect(() => {
+    if(searchText.length > 0){
+        async function fetchSuggestion(){
+          try{
+            const suggestions = await callAutoComplete(searchText);
+            setFoodSuggestions(suggestions);
+          } catch (error){
+            console.error("Error fetching suggestions: ", error);
+            setFoodSuggestions([]);
+          }
+      }
+
+      fetchSuggestion();
+    }else{
+      setFoodSuggestions([]);
+    }
+  }, [searchText])
+
+
+  //fetch food for food list
+ const handleFetchingFood = () => {
+    async function fetchFoodItems(){
+      try{
+        console.log(searchText);
+        console.log(await callSearch(searchText));
+        setFoodItems(food);
+      }catch(error){
+        console.error("Error fetching food: ", error);
+        setFoodItems([]);
+      }
+    }
+
+    fetchFoodItems();
+  }
+
+  //Search for clicked suggestion, clear suggestions
+  const handleSuggestionClick = (suggestion) => {
+    setSearchText(suggestion);
+    setFoodSuggestions([]);
+    handleFetchingFood();
+  }
 
   const handleAddFood = (item) => {
     if (!selectedItems.find((selected) => selected.id === item.id)) {
@@ -34,9 +83,6 @@ export default function AddFoodScreen() {
     setSelectedItems(selectedItems.filter((item) => item.id !== itemId));
   };
 
-  const filteredFoodItems = foodItems.filter((item) =>
-    item.name.toLowerCase().includes(searchText.toLowerCase())
-  );
 
   return (
     <View style={[styles.container, {backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff"}]}>
@@ -50,10 +96,21 @@ export default function AddFoodScreen() {
         value={searchText}
         onChangeText={setSearchText}
       />
+      {foodSuggestions.length > 0 && (
+        <FlatList
+          data={foodSuggestions}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => (
+            <TouchableOpacity onPress={() => handleSuggestionClick(item)}>
+              <Text style={[styles.suggestionItem, {color: darkModeEnabled ? "#fff" : "#333"}]}>{item}</Text>
+            </TouchableOpacity>
+          )}
+        />
+      )}
 
       {/* Food List */}
-      <FlatList
-        data={filteredFoodItems}
+      {foodItems[0].food_id != null && <FlatList
+        data={foodItems}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={[styles.foodItem, {backgroundColor: darkModeEnabled ? "#333" : "#fff"}]}>
@@ -69,7 +126,7 @@ export default function AddFoodScreen() {
         ListEmptyComponent={
           <Text style={styles.emptyListText}>No food items found.</Text>
         }
-      />
+      />}
 
       {/* Selected Food Items */}
       <Text style={[styles.selectedHeader, {color: darkModeEnabled ? "#fff" : "#333"}]}>Selected Food</Text>
@@ -185,5 +242,19 @@ const styles = StyleSheet.create({
     color: '#aaa',
     fontSize: 16,
     marginTop: 20,
+  },
+  searchBar: {
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "#ccc",
+  },
+  suggestionItem: {
+    padding: 10,
+    borderWidth: 1,
+    borderTopWidth: 0,
+    borderBottomColor: "#ddd",
+    borderRadius: 5,
   },
 });
