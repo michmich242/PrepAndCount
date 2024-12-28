@@ -32,6 +32,7 @@ export default function AddFoodScreen() {
 const[foodItems, setFoodItems] = useState([]);
 
   const [darkModeEnabled, setDarkModeEnabled] = useContext(DMContext);
+  const [isSuggesting, setSuggesting] = useState(true);
   const [searchText, setSearchText] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
 
@@ -75,7 +76,6 @@ const[foodItems, setFoodItems] = useState([]);
   const handleSuggestionClick = (suggestion) => {
     setSearchText(suggestion);
     setFoodSuggestions([]);
-    console.log(suggestion);
     handleFetchingFood(suggestion);
   }
 
@@ -101,14 +101,19 @@ const[foodItems, setFoodItems] = useState([]);
         placeholder="Search food..."
         placeholderTextColor="#aaa"
         value={searchText}
-        onChangeText={setSearchText}
+        onChangeText={(text) => 
+          {
+            setSearchText(text);
+            setSuggesting(true);
+          }
+        }
       />
-      {foodSuggestions.length > 0 && (
+      {foodSuggestions.length > 0 && isSuggesting && (
         <FlatList
           data={foodSuggestions}
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item }) => (
-            <TouchableOpacity onPress={() => handleSuggestionClick(item)}>
+            <TouchableOpacity onPress={() => {handleSuggestionClick(item); setSuggesting(false);}}>
               <Text style={[styles.suggestionItem, {color: darkModeEnabled ? "#fff" : "#333"}]}>{item}</Text>
             </TouchableOpacity>
           )}
