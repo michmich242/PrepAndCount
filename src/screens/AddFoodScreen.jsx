@@ -54,7 +54,7 @@ const[foodItems, setFoodItems] = useState([]);
   }, [searchText])
 
 
-  //fetch food for food list
+ //fetch food for food list
  const handleFetchingFood = (suggestion) => {
     async function fetchFoodItems(){
       try{
