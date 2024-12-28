@@ -14,7 +14,6 @@ import { PieChart } from 'react-native-chart-kit';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { DMContext } from '../../app/_layout'
 import { useContext } from "react"
-import { DarkTheme } from '@react-navigation/native';
 
 // Dynamically get the screen width for responsive chart scaling
 const screenWidth = Dimensions.get('window').width;

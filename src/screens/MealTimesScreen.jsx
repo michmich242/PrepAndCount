@@ -10,31 +10,33 @@ export default function ChangeMealTimesScreen({ navigation }) {
   return (
     <View style={[styles.container, { backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff" }]}>
       <View style={styles.text}>
-        <Text>Breakfast Time</Text>
+        <Text style={{color: darkModeEnabled ? "#fff" : "#333"}}>Breakfast Time</Text>
         <TextInput
-          keyboardType="number-pad"
-          style={styles.textInput}
+          style={[styles.textInput, {backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff"}, {color: darkModeEnabled ? "#fff" : "#333"}]}
           value={breakfastTime}
           onChangeText={setBreakfastTime}
-          placeholder={breakfastTime || "Set Breakfast Time"}
+          placeholder={breakfastTime || "Enter Breakfast Time"}
+          placeholderTextColor={darkModeEnabled ? "#fff" : "#333"}
         />
       </View>
       <View style={styles.text}>
-        <Text>Lunch Time</Text>
+        <Text style={{color: darkModeEnabled ? "#fff" : "#333"}} >Lunch Time</Text>
         <TextInput
-          style={styles.textInput}
+          style={[styles.textInput, {backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff"}, {color: darkModeEnabled ? "#fff" : "#333"}]}
           value={lunchTime}
           onChangeText={setLunchTime}
-          placeholder="Enter lunch time"
+          placeholder="Enter Lunch Time"
+          placeholderTextColor={darkModeEnabled ? "#fff" : "#333"}
         />
       </View>
       <View style={styles.text}>
-        <Text>Dinner Time</Text>
+        <Text style={{color: darkModeEnabled ? "#fff" : "#333"}}>Dinner Time</Text>
         <TextInput
-          style={styles.textInput}
+          style={[styles.textInput, {backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff"}, {color: darkModeEnabled ? "#fff" : "#333"}]}
           value={dinnerTime}
           onChangeText={setDinnerTime}
-          placeholder="Enter dinner time"
+          placeholder="Enter Dinner Time"
+          placeholderTextColor={darkModeEnabled ? "#fff" : "#333"}
         />
       </View>
     </View>
