@@ -16,8 +16,9 @@ import { callSearch } from '../../callAPI';
 export default function AddFoodScreen() {
   const [foodSuggestions, setFoodSuggestions] = useState([]);
 
+/*
   const [foodItems, setFoodItems] = useState([{
-    food_id: null,
+    food_id: 59586,
     food_name: "none",
     brand_name: "none",
     food_type: "none",
@@ -26,6 +27,9 @@ export default function AddFoodScreen() {
       serving: []
     }
   }]);
+  */
+
+const[foodItems, setFoodItems] = useState([]);
 
   const [darkModeEnabled, setDarkModeEnabled] = useContext(DMContext);
   const [searchText, setSearchText] = useState('');
@@ -35,8 +39,8 @@ export default function AddFoodScreen() {
     if(searchText.length > 0){
         async function fetchSuggestion(){
           try{
-            const suggestions = await callAutoComplete(searchText);
-            setFoodSuggestions(suggestions);
+            const suggestions = await callAutoComplete(searchText.trim());
+            setFoodSuggestions(suggestions || []);
           } catch (error){
             console.error("Error fetching suggestions: ", error);
             setFoodSuggestions([]);
@@ -51,12 +55,13 @@ export default function AddFoodScreen() {
 
 
   //fetch food for food list
- const handleFetchingFood = () => {
+ const handleFetchingFood = (suggestion) => {
     async function fetchFoodItems(){
       try{
-        console.log(searchText);
-        console.log(await callSearch(searchText));
-        setFoodItems(food);
+        const food = await callSearch(suggestion.trim());
+        console.log(food);
+        
+        setFoodItems(food || []);
       }catch(error){
         console.error("Error fetching food: ", error);
         setFoodItems([]);
@@ -70,7 +75,8 @@ export default function AddFoodScreen() {
   const handleSuggestionClick = (suggestion) => {
     setSearchText(suggestion);
     setFoodSuggestions([]);
-    handleFetchingFood();
+    console.log(suggestion);
+    handleFetchingFood(suggestion);
   }
 
   const handleAddFood = (item) => {
@@ -82,6 +88,7 @@ export default function AddFoodScreen() {
   const handleRemoveFood = (itemId) => {
     setSelectedItems(selectedItems.filter((item) => item.id !== itemId));
   };
+
 
 
   return (
@@ -109,7 +116,7 @@ export default function AddFoodScreen() {
       )}
 
       {/* Food List */}
-      {foodItems[0].food_id != null && <FlatList
+      {foodItems.length > 0 && foodItems[0]?.food_id != null && <FlatList
         data={foodItems}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
