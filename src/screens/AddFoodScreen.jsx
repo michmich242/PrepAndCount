@@ -59,10 +59,18 @@ const[foodItems, setFoodItems] = useState([]);
  const handleFetchingFood = (suggestion) => {
     async function fetchFoodItems(){
       try{
-        const food = await callSearch(suggestion.trim());
-        console.log(food);
+        const food = await callSearch(suggestion);
         
-        setFoodItems(food || []);
+
+        const foodNames = food.food.map((item) => ({
+            food_id: item.food_id,
+            food_name: item.food_name
+        }));
+      
+        
+        setFoodItems(foodNames);
+        console.log(foodNames);
+
       }catch(error){
         console.error("Error fetching food: ", error);
         setFoodItems([]);
@@ -80,14 +88,16 @@ const[foodItems, setFoodItems] = useState([]);
   }
 
   const handleAddFood = (item) => {
-    if (!selectedItems.find((selected) => selected.id === item.id)) {
+    if (!selectedItems.find((selected) => selected.food_id === item.food_id)) {
       setSelectedItems([...selectedItems, item]);
     }
   };
 
   const handleRemoveFood = (itemId) => {
-    setSelectedItems(selectedItems.filter((item) => item.id !== itemId));
+    setSelectedItems(selectedItems.filter((item) => item.food_id !== itemId));
   };
+
+  
 
 
 
@@ -123,17 +133,19 @@ const[foodItems, setFoodItems] = useState([]);
       {/* Food List */}
       {foodItems.length > 0 && foodItems[0]?.food_id != null && <FlatList
         data={foodItems}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.food_id}
         renderItem={({ item }) => (
           <View style={[styles.foodItem, {backgroundColor: darkModeEnabled ? "#333" : "#fff"}]}>
-            <Text style={[styles.foodText, {color: darkModeEnabled ? "#fff" : "#333"}]}>{item.name}</Text>
+            <Text multiline={true} style={[styles.foodText, {color: darkModeEnabled ? "#fff" : "#333"}]}>{item.food_name}</Text>
             <TouchableOpacity
               style={styles.addButton}
-              onPress={() => handleAddFood(item)}
+              onPress={() => {handleAddFood(item);}}
             >
               <Text style={styles.addButtonText}>Add</Text>
             </TouchableOpacity>
+            
           </View>
+          
         )}
         ListEmptyComponent={
           <Text style={styles.emptyListText}>No food items found.</Text>
@@ -144,15 +156,15 @@ const[foodItems, setFoodItems] = useState([]);
       <Text style={[styles.selectedHeader, {color: darkModeEnabled ? "#fff" : "#333"}]}>Selected Food</Text>
       <FlatList
         data={selectedItems}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.food_id}
         renderItem={({ item }) => (
           <View style={[styles.selectedItem, {backgroundColor: darkModeEnabled ? "#333" : "#fff"}]}>
-            <Text style={[styles.foodText, {color: darkModeEnabled ? "#fff" : "#333"}]}>
-              {item.name} - {item.calories} cal
+            <Text multiline={true} maxLength={5} style={[styles.selected_text, {color: darkModeEnabled ? "#fff" : "#333"}]}>
+              {item.food_name} - {item.calories} cal
             </Text>
             <TouchableOpacity
               style={styles.removeButton}
-              onPress={() => handleRemoveFood(item.id)}
+              onPress={() => handleRemoveFood(item.food_id)}
             >
               <Text style={styles.removeButtonText}>Remove</Text>
             </TouchableOpacity>
@@ -173,6 +185,12 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: '#f9f9f9',
+  },
+  selected_text:{
+    padding: 3,
+    fontSize: 16,
+    color: "#333",
+    width: '70%'
   },
   header: {
     fontSize: 24,
@@ -207,6 +225,8 @@ const styles = StyleSheet.create({
   foodText: {
     fontSize: 16,
     color: '#333',
+    width: '80%',
+    
   },
   addButton: {
     backgroundColor: '#007aff',
@@ -229,7 +249,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 15,
+    padding: 13,
     backgroundColor: '#fff',
     borderRadius: 8,
     marginBottom: 10,
