@@ -11,6 +11,8 @@ import { DMContext } from '../../app/_layout'
 import { useContext } from "react"
 import { callAutoComplete } from '../../callAPI';
 import { callSearch } from '../../callAPI';
+import MacrosScreen from './MacrosScreen';
+import { useNavigation } from '@react-navigation/native';
 
 
 export default function AddFoodScreen() {
@@ -35,6 +37,7 @@ const[foodItems, setFoodItems] = useState([]);
   const [isSuggesting, setSuggesting] = useState(true);
   const [searchText, setSearchText] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
+  const navigation = useNavigation();
 
   useEffect(() => {
     if(searchText.length > 0){
@@ -139,7 +142,7 @@ const[foodItems, setFoodItems] = useState([]);
             <Text multiline={true} style={[styles.foodText, {color: darkModeEnabled ? "#fff" : "#333"}]}>{item.food_name}</Text>
             <TouchableOpacity
               style={styles.addButton}
-              onPress={() => {handleAddFood(item);}}
+              onPress={() => {navigation.navigate('Macros Screen')}}
             >
               <Text style={styles.addButtonText}>Add</Text>
             </TouchableOpacity>

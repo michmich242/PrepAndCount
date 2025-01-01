@@ -12,6 +12,7 @@ import GroceryListScreen from '../src/screens/GroceryListScreen';
 import SettingsScreen from '../src/screens/SettingsScreen';
 import AddFoodScreen from '../src/screens/AddFoodScreen';
 import ChangeMealTimesScreen from '../src/screens/MealTimesScreen'
+import MacrosScreen from '../src/screens/MacrosScreen';
 import {useState} from 'react';
 
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
@@ -23,7 +24,8 @@ import { MealTimesContext } from '../hooks/mealTimes';
 SplashScreen.preventAutoHideAsync();
 
 const Tab = createBottomTabNavigator();
-const Stack = createNativeStackNavigator();
+const SettingsStack = createNativeStackNavigator();
+const AddFoodStack = createNativeStackNavigator();
 
 
 export const DMContext = React.createContext({});
@@ -51,11 +53,18 @@ export default function RootLayout() {
     return null;
   }
 
-  const SettingsStack = () => (
-    <Stack.Navigator>
-      <Stack.Screen options={{headerShown: false}} name="Settings" component={SettingsScreen}/>
-      <Stack.Screen options={{headerStyle: {backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff"}, headerTintColor: darkModeEnabled ? "#fff" : "#333"}} name= "Change Meal Times" component={ChangeMealTimesScreen}/>
-    </Stack.Navigator>
+  const SettingsStackScreen = () => (
+    <SettingsStack.Navigator>
+      <SettingsStack.Screen options={{headerShown: false}} name="Settings" component={SettingsScreen}/>
+      <SettingsStack.Screen options={{headerStyle: {backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff"}, headerTintColor: darkModeEnabled ? "#fff" : "#333"}} name= "Change Meal Times" component={ChangeMealTimesScreen}/>
+    </SettingsStack.Navigator>
+  )
+
+  const AddFoodStackScreen = () => (
+    <AddFoodStack.Navigator>
+        <AddFoodStack.Screen options= {{headerShown: false}} name="Add Food Screen" component={AddFoodScreen}/>
+        <AddFoodStack.Screen options={{headerStyle: {backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff"}, headerTintColor: darkModeEnabled ? "#fff" : "#333"}} name= "Macros Screen" component={MacrosScreen}/>
+    </AddFoodStack.Navigator>
   )
 
   return (
@@ -90,8 +99,8 @@ export default function RootLayout() {
         >
           <Tab.Screen name="Home" component={HomeScreen} />
           <Tab.Screen name="Grocery List" component={GroceryListScreen} />
-          <Tab.Screen name="Add Food" component={AddFoodScreen} />
-          <Tab.Screen name="Settings" component={SettingsStack} />
+          <Tab.Screen name="Add Food" component={AddFoodStackScreen} />
+          <Tab.Screen name="Settings" component={SettingsStackScreen} />
         </Tab.Navigator>
         <StatusBar style="auto" />
       </MealTimesContext.Provider>
