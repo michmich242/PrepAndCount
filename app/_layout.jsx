@@ -55,17 +55,40 @@ export default function RootLayout() {
 
   const SettingsStackScreen = () => (
     <SettingsStack.Navigator>
-      <SettingsStack.Screen options={{headerShown: false}} name="Settings" component={SettingsScreen}/>
-      <SettingsStack.Screen options={{headerStyle: {backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff"}, headerTintColor: darkModeEnabled ? "#fff" : "#333"}} name= "Change Meal Times" component={ChangeMealTimesScreen}/>
+      <SettingsStack.Screen 
+        options={{ headerShown: false }} 
+        name="Settings Home" // Renamed to avoid conflict 
+        component={SettingsScreen} 
+      />
+      <SettingsStack.Screen 
+        options={{
+          headerStyle: { backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff" }, 
+          headerTintColor: darkModeEnabled ? "#fff" : "#333"
+        }} 
+        name="Change Meal Times" 
+        component={ChangeMealTimesScreen} 
+      />
     </SettingsStack.Navigator>
-  )
-
+  );
+  
   const AddFoodStackScreen = () => (
     <AddFoodStack.Navigator>
-        <AddFoodStack.Screen options= {{headerShown: false}} name="Add Food Screen" component={AddFoodScreen}/>
-        <AddFoodStack.Screen options={{headerStyle: {backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff"}, headerTintColor: darkModeEnabled ? "#fff" : "#333"}} name= "Macros Screen" component={MacrosScreen}/>
+      <AddFoodStack.Screen 
+        options={{ headerShown: false }} 
+        name="Add Food Home" // Renamed to avoid conflict
+        component={AddFoodScreen} 
+      />
+      <AddFoodStack.Screen 
+        options={{
+          headerStyle: { backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff" }, 
+          headerTintColor: darkModeEnabled ? "#fff" : "#333"
+        }} 
+        name="Macros Screen" 
+        component={MacrosScreen} 
+      />
     </AddFoodStack.Navigator>
-  )
+  );
+  
 
   return (
     <DMContext.Provider value={[darkModeEnabled, setDarkModeEnabled, breakfastTime, setBreakfastTime, lunchTime, setLunchTime, dinnerTime, setDinnerTime]}>
