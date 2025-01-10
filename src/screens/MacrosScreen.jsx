@@ -6,19 +6,24 @@ import {
     ScrollView,
     SafeAreaView,
 } from 'react-native';
-import { callSearch } from "../../callAPI";
+import { callFindByID, callSearch } from "../../callAPI.js";
 import { DMContext } from "../../app/_layout";
 import { StyleSheet } from 'react-native';
 import { useContext } from 'react';
 import PieChart from 'react-native-pie-chart'
 import { Dimensions } from 'react-native';
 import { useNavigation } from 'expo-router';
+import { formatDiagnostic } from 'typescript';
 
-export default function MacrosScreen() {
+export default function MacrosScreen( { route } ) {
     const [darkModeEnabled] = useContext(DMContext);
     const screenWidth = Dimensions.get('window').width;
     const navigation = useNavigation();
-    
+    const food_info = route.params.food_info;
+
+    console.log(food_info[2].serving.length)    
+
+
     const handleGoBack = () => {
         navigation.goBack();
     };
@@ -30,7 +35,6 @@ export default function MacrosScreen() {
     ];
 
     const widthAndHeight = 125;
-    const totalCalories = 100;
 
     return (
         <SafeAreaView style={styles.mainContainer}>
@@ -45,7 +49,7 @@ export default function MacrosScreen() {
                         <Text style={styles.sectionHeader}>General Information</Text>
                         <View style={styles.card}>
                             <View style={styles.infoRow}>
-                                <Text style={styles.label}>Name</Text>
+                                <Text style={styles.label}>{food_info[0]} ({food_info[1]})</Text>
                             </View>
                             <View style={styles.separator} />
                             <View style={styles.infoRow}>
@@ -88,7 +92,7 @@ export default function MacrosScreen() {
                                         cover={0.6}
                                     />
                                     <View style={styles.chartOverlay}>
-                                        <Text style={styles.overlayText}>{totalCalories}</Text>
+                                        <Text style={styles.overlayText}>{food_info[2].serving[0].calories}</Text>
                                         <Text style={styles.overlaySubText}>kCal</Text>
                                     </View>
                                 </View>

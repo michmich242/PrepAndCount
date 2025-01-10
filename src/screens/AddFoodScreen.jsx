@@ -7,10 +7,11 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
+import { callFindByID } from '../../callAPI.js';
 import { DMContext } from '../../app/_layout'
 import { useContext } from "react"
-import { callAutoComplete } from '../../callAPI';
-import { callSearch } from '../../callAPI';
+import { callAutoComplete } from '../../callAPI.js';
+import { callSearch } from '../../callAPI.js';
 import MacrosScreen from './MacrosScreen';
 import { useNavigation } from '@react-navigation/native';
 
@@ -72,8 +73,6 @@ const[foodItems, setFoodItems] = useState([]);
       
         
         setFoodItems(foodNames);
-        console.log(foodNames);
-
       }catch(error){
         console.error("Error fetching food: ", error);
         setFoodItems([]);
@@ -100,6 +99,16 @@ const[foodItems, setFoodItems] = useState([]);
     setSelectedItems(selectedItems.filter((item) => item.food_id !== itemId));
   };
 
+  
+  //grab food info from API call for specific food id, go to macros screen and send info
+  async function handleMacroNav(food_id) {
+    try {
+      const food_info = await callFindByID(food_id);      
+      navigation.navigate('Macros Screen', { food_info });
+    } catch (error) {
+      console.error('Error navigating to Macros Screen:', error);
+    }
+  }
   
 
 
@@ -142,7 +151,7 @@ const[foodItems, setFoodItems] = useState([]);
             <Text multiline={true} style={[styles.foodText, {color: darkModeEnabled ? "#fff" : "#333"}]}>{item.food_name}</Text>
             <TouchableOpacity
               style={styles.addButton}
-              onPress={() => {navigation.navigate('Macros Screen')}}
+              onPress={() => handleMacroNav(item.food_id)}
             >
               <Text style={styles.addButtonText}>Add</Text>
             </TouchableOpacity>
