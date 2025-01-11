@@ -9,32 +9,64 @@ import {
 import { callFindByID, callSearch } from "../../callAPI.js";
 import { DMContext } from "../../app/_layout";
 import { StyleSheet } from 'react-native';
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import PieChart from 'react-native-pie-chart'
-import { Dimensions } from 'react-native';
 import { useNavigation } from 'expo-router';
 import { formatDiagnostic } from 'typescript';
+import { Dropdown } from 'react-native-element-dropdown';
 
 export default function MacrosScreen( { route } ) {
-    const [darkModeEnabled] = useContext(DMContext);
-    const screenWidth = Dimensions.get('window').width;
+    const food_info = route.params.food_info; // first index holds name, second index holds brand name, third index holds serving array
     const navigation = useNavigation();
-    const food_info = route.params.food_info;
+    const widthAndHeight = 125;
+    let index = 0;
 
-    console.log(food_info[2].serving.length)    
+    let servingOptions = food_info[2].serving.map((item) => ({
+        label: item.serving_description,
+        amount: item.metric_serving_amount    
+    }));
 
+    const [quantity, setQuantity] = useState(1);
+    const[totalCalories, setTotalCalories] = useState(food_info[2].serving[0].calories);
+    const[macros, setMacros] = useState([
+        { value: food_info[2].serving[0].protein, color: '#fbd203' },
+        { value: food_info[2].serving[0].fat, color: '#ffb300' },
+        { value: food_info[2].serving[0].carbohydrate - food_info[2].serving[index].fiber, color: '#ff9100' },
+    ]);
 
+    console.log(macros);
+
+    const[serving, setServing] = useState(servingOptions[0]);
+    const [isFocus, setIsFocus] = useState(false);
+    const [darkModeEnabled] = useContext(DMContext);
+
+    
     const handleGoBack = () => {
         navigation.goBack();
     };
 
-    const series = [
-        { value: 430, color: '#fbd203' },
-        { value: 321, color: '#ffb300' },
-        { value: 185, color: '#ff9100' },
-    ];
 
-    const widthAndHeight = 125;
+
+    function handleServingChange(index){
+        //update energy summary
+        setMacros([
+            { value: food_info[2].serving[index].protein, color: '#fbd203' },
+            { value: food_info[2].serving[index].fat, color: '#ffb300' },
+            { value: food_info[2].serving[index].carbohydrate - food_info[2].serving[index].fiber, color: '#ff9100' },
+        ]);
+
+        setTotalCalories(food_info[2].serving[index].calories);
+
+    }
+
+    useEffect(() => {
+        setMacros([
+            { value: macros[0] * quantity, color: '#fbd203' },
+            { value: macros[0] * quantity, color: '#ffb300' },
+            { value: macros[0] * quantity, color: '#ff9100' },
+        ]);
+
+    }, [quantity])
 
     return (
         <SafeAreaView style={styles.mainContainer}>
@@ -64,11 +96,30 @@ export default function MacrosScreen( { route } ) {
                             <View style={styles.separator} />
                             <View style={styles.infoRow}>
                                 <Text style={styles.label}>Serving</Text>
-                                <TextInput 
-                                    style={styles.input}
-                                    placeholder="Enter serving"
-                                    placeholderTextColor="#999"
-                                />
+                                <Dropdown
+                                    style={[styles.input, isFocus && { borderColor: 'blue' }]}
+                                    placeholderStyle={styles.placeholderStyle}
+                                    selectedTextStyle={styles.selectedTextStyle}
+                                    inputSearchStyle={styles.inputSearchStyle}
+                                    iconStyle={styles.iconStyle}
+                                    data={servingOptions}
+                                    maxHeight={300}
+                                    labelField="label"
+                                    valueField="amount"
+                                    placeholder={!isFocus ? 'Select item' : '...'}
+                                    value={serving}
+                                    onFocus={() => setIsFocus(true)}
+                                    onBlur={() => setIsFocus(false)}
+                                    onChange={(item)=> {
+                                        index = food_info[2].serving.findIndex(
+                                            (serving) => serving.serving_description === item.label
+                                        )
+                                    
+                                        handleServingChange(index);
+
+                                        setServing(item.amount);
+                                        setIsFocus(false);
+                                    }}/>
                             </View>
                         </View>
                     </View>
@@ -80,19 +131,19 @@ export default function MacrosScreen( { route } ) {
                             <Text style={styles.cardTitle}>Energy Summary</Text>
                             <View style={styles.chartContainer}>
                                 <View style={styles.legendContainer}>
-                                    <Text style={[styles.legendText, { color: '#fbd203' }]}>Protein - 60%</Text>
-                                    <Text style={[styles.legendText, { color: '#ffb300' }]}>Fat - 30%</Text>
-                                    <Text style={[styles.legendText, { color: '#ff9100' }]}>Net Carbs - 10%</Text>
+                                    <Text style={[styles.legendText, { color: '#fbd203' }]}>Protein ({Math.trunc(macros[0].value)}g) - 60%</Text>
+                                    <Text style={[styles.legendText, { color: '#ffb300' }]}>Fat ({Math.trunc(macros[1].value)}g) - 30%</Text>
+                                    <Text style={[styles.legendText, { color: '#ff9100' }]}>Net Carbs ({Math.trunc(macros[2].value)}g) - 10%</Text>
                                 </View>
                                 
                                 <View style={styles.pieContainer}>
                                     <PieChart 
                                         widthAndHeight={widthAndHeight} 
-                                        series={series} 
+                                        series={macros} 
                                         cover={0.6}
                                     />
                                     <View style={styles.chartOverlay}>
-                                        <Text style={styles.overlayText}>{food_info[2].serving[0].calories}</Text>
+                                        <Text style={styles.overlayText}>{totalCalories}</Text>
                                         <Text style={styles.overlaySubText}>kCal</Text>
                                     </View>
                                 </View>

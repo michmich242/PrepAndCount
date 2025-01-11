@@ -133,7 +133,7 @@ const[foodItems, setFoodItems] = useState([]);
       {foodSuggestions.length > 0 && isSuggesting && (
         <FlatList
           data={foodSuggestions}
-          keyExtractor={(item, index) => index.toString()}
+          keyExtractor={(index) => index.toString()}
           renderItem={({ item }) => (
             <TouchableOpacity onPress={() => {handleSuggestionClick(item); setSuggesting(false);}}>
               <Text style={[styles.suggestionItem, {color: darkModeEnabled ? "#fff" : "#333"}]}>{item}</Text>
