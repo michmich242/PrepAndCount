@@ -103,13 +103,30 @@ const[foodItems, setFoodItems] = useState([]);
   //grab food info from API call for specific food id, go to macros screen and send info
   async function handleMacroNav(food_id) {
     try {
-      const food_info = await callFindByID(food_id);      
-      navigation.navigate('Macros Screen', { food_info });
+        const food_info = await callFindByID(food_id);
+
+        // Log the structure of food_info
+        //console.log('Fetched food_info:', food_info);
+        const protein = food_info[2]?.serving[0].protein;
+        const fat = food_info[2]?.serving[0].fat;
+        const carbohydrate = food_info[2]?.serving[0].carbohydrate;
+        const fiber = food_info[2]?.serving[0].fiber;
+
+ 
+
+
+        // Validate food_info[2].serving
+        if (food_info && Array.isArray(food_info[2]?.serving) && food_info[2].serving.length > 0) {
+            navigation.navigate('Macros Screen', { food_info, protein: food_info[2]?.serving[0].protein, fat: food_info[2]?.serving[0].fat, carbohydrate: food_info[2]?.serving[0].carbohydrate , fiber: food_info[2]?.serving[0].fiber });
+        } else {
+            console.log('Invalid food_info, no serving found');
+            alert('No valid serving data found for this food item.');
+        }
     } catch (error) {
-      console.error('Error navigating to Macros Screen:', error);
+        console.error('Error navigating to Macros Screen:', error);
+        alert('Failed to fetch food information. Please try again.');
     }
-  }
-  
+}
 
 
 
