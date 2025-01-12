@@ -17,13 +17,31 @@ import { Dropdown } from 'react-native-element-dropdown';
 
 export default function MacrosScreen( { route } ) {
     const food_info = route.params.food_info; // first index holds name, second index holds brand name, third index holds serving array
-    const { protein, fat, carbohydrate, fiber } = route.params;
+    let { protein, fat, carbohydrate, fiber } = route.params;
+
+
+    
 
     let net_carb = carbohydrate
+
     
     if(fiber){
         net_carb -= fiber;
     }
+
+    protein = Math.round(protein);
+    fat = Math.round(fat);
+    net_carb = Math.round(net_carb);
+
+    const protein_percentage = Math.round((100 * (protein/(protein + fat + net_carb))));
+    const fat_percentage = Math.round((100 * (fat/(protein + fat + net_carb))));
+    const net_carb_percentage = Math.round((100 * (net_carb/(protein + fat + net_carb))))
+    console.log(protein);
+    console.log(fat);
+    console.log(net_carb);
+    console.log(protein_percentage);
+
+
 
 
     const navigation = useNavigation();
@@ -38,9 +56,9 @@ export default function MacrosScreen( { route } ) {
     const [quantity, setQuantity] = useState(1);
     const[totalCalories, setTotalCalories] = useState(food_info[2].serving[0].calories);
     const[macros, setMacros] = useState([
-        { value: 2, color: '#fbd203' },
-        { value: 4, color: '#ffb300' },
-        { value: 7, color: '#ff9100' },
+        { value: -1, color: '#fbd203' },
+        { value: -1, color: '#ffb300' },
+        { value: -1, color: '#ff9100' },
     ]);
 
 
@@ -143,9 +161,9 @@ export default function MacrosScreen( { route } ) {
                             <Text style={styles.cardTitle}>Energy Summary</Text>
                             <View style={styles.chartContainer}>
                                 <View style={styles.legendContainer}>
-                                    <Text style={[styles.legendText, { color: '#fbd203' }]}>Protein ({quantity * (Math.trunc(macros[0].value) || protein)}g) - 60%</Text>
-                                    <Text style={[styles.legendText, { color: '#ffb300' }]}>Fat ({quantity * (Math.trunc(macros[1].value) || fat)}g) - 30%</Text>
-                                    <Text style={[styles.legendText, { color: '#ff9100' }]}>Net Carbs ({quantity * (Math.trunc(macros[2].value || net_carb))}g) - 10%</Text>
+                                    <Text style={[styles.legendText, { color: '#fbd203' }]}>Protein ({quantity * (Math.trunc(macros[0].value) !== -1 ? Math.trunc(macros[0].value) : protein)}g) - {protein_percentage}%</Text>
+                                    <Text style={[styles.legendText, { color: '#ffb300' }]}>Fat ({quantity * (Math.trunc(macros[1].value) !== -1 ? Math.trunc(macros[1].value) : fat)}g) - {fat_percentage}%</Text>
+                                    <Text style={[styles.legendText, { color: '#ff9100' }]}>Net Carbs ({quantity * (Math.trunc(macros[2].value) !== -1 ? Math.trunc(macros[2].value) : net_carb)}g) - {net_carb_percentage}%</Text>
                                 </View>
                                 
                                 <View style={styles.pieContainer}>
