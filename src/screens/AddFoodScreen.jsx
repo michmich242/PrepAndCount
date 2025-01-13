@@ -7,10 +7,13 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
+import { callFindByID } from '../../callAPI.js';
 import { DMContext } from '../../app/_layout'
 import { useContext } from "react"
-import { callAutoComplete } from '../../callAPI';
-import { callSearch } from '../../callAPI';
+import { callAutoComplete } from '../../callAPI.js';
+import { callSearch } from '../../callAPI.js';
+import MacrosScreen from './MacrosScreen';
+import { useNavigation } from '@react-navigation/native';
 
 
 export default function AddFoodScreen() {
@@ -35,6 +38,7 @@ const[foodItems, setFoodItems] = useState([]);
   const [isSuggesting, setSuggesting] = useState(true);
   const [searchText, setSearchText] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
+  const navigation = useNavigation();
 
   useEffect(() => {
     if(searchText.length > 0){
@@ -59,10 +63,17 @@ const[foodItems, setFoodItems] = useState([]);
  const handleFetchingFood = (suggestion) => {
     async function fetchFoodItems(){
       try{
-        const food = await callSearch(suggestion.trim());
-        console.log(food);
+        const food = await callSearch(suggestion);
         
-        setFoodItems(food || []);
+
+        const foodNames = food.food.map((item) => ({
+            food_id: item.food_id,
+            food_name: item.food_name,
+            brand_name: item.brand_name
+        }));
+      
+        
+        setFoodItems(foodNames);
       }catch(error){
         console.error("Error fetching food: ", error);
         setFoodItems([]);
@@ -80,14 +91,45 @@ const[foodItems, setFoodItems] = useState([]);
   }
 
   const handleAddFood = (item) => {
-    if (!selectedItems.find((selected) => selected.id === item.id)) {
+    if (!selectedItems.find((selected) => selected.food_id === item.food_id)) {
       setSelectedItems([...selectedItems, item]);
     }
   };
 
   const handleRemoveFood = (itemId) => {
-    setSelectedItems(selectedItems.filter((item) => item.id !== itemId));
+    setSelectedItems(selectedItems.filter((item) => item.food_id !== itemId));
   };
+
+  
+  //grab food info from API call for specific food id, go to macros screen and send info
+  async function handleMacroNav(food_id) {
+    try {
+        const food_info = await callFindByID(food_id);
+
+        // Validate food_info[2].serving
+        if (food_info && Array.isArray(food_info[2]?.serving) && food_info[2].serving.length > 0) {
+            navigation.navigate('Macros Screen', { 
+              food_info, 
+              protein: food_info[2]?.serving[0].protein, 
+              fat: food_info[2]?.serving[0].fat, 
+              carbohydrate: food_info[2]?.serving[0].carbohydrate , 
+              fiber: food_info[2]?.serving[0].fiber,
+              vitamin_c: food_info[2]?.serving[0].vitamin_c,
+              iron: food_info[2]?.serving[0].iron,
+              vitamin_a: food_info[2]?.serving[0].vitamin_a,
+              calcium: food_info[2]?.serving[0].calcium,
+              sodium: food_info[2]?.serving[0].sodium,
+              potassium: food_info[2]?.serving[0].potassium,
+            });
+        } else {
+            console.log('Invalid food_info, no serving found');
+            alert('No valid serving data found for this food item.');
+        }
+    } catch (error) {
+        console.error('Error navigating to Macros Screen:', error);
+        alert('Failed to fetch food information. Please try again.');
+    }
+}
 
 
 
@@ -111,7 +153,7 @@ const[foodItems, setFoodItems] = useState([]);
       {foodSuggestions.length > 0 && isSuggesting && (
         <FlatList
           data={foodSuggestions}
-          keyExtractor={(item, index) => index.toString()}
+          keyExtractor={(index) => index.toString()}
           renderItem={({ item }) => (
             <TouchableOpacity onPress={() => {handleSuggestionClick(item); setSuggesting(false);}}>
               <Text style={[styles.suggestionItem, {color: darkModeEnabled ? "#fff" : "#333"}]}>{item}</Text>
@@ -123,17 +165,19 @@ const[foodItems, setFoodItems] = useState([]);
       {/* Food List */}
       {foodItems.length > 0 && foodItems[0]?.food_id != null && <FlatList
         data={foodItems}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.food_id}
         renderItem={({ item }) => (
           <View style={[styles.foodItem, {backgroundColor: darkModeEnabled ? "#333" : "#fff"}]}>
-            <Text style={[styles.foodText, {color: darkModeEnabled ? "#fff" : "#333"}]}>{item.name}</Text>
+            <Text multiline={true} style={[styles.foodText, {color: darkModeEnabled ? "#fff" : "#333"}]}>{item.food_name} ({(item.brand_name != null) ? item.brand_name : "Generic"})</Text>
             <TouchableOpacity
               style={styles.addButton}
-              onPress={() => handleAddFood(item)}
+              onPress={() => handleMacroNav(item.food_id)}
             >
               <Text style={styles.addButtonText}>Add</Text>
             </TouchableOpacity>
+            
           </View>
+          
         )}
         ListEmptyComponent={
           <Text style={styles.emptyListText}>No food items found.</Text>
@@ -144,15 +188,15 @@ const[foodItems, setFoodItems] = useState([]);
       <Text style={[styles.selectedHeader, {color: darkModeEnabled ? "#fff" : "#333"}]}>Selected Food</Text>
       <FlatList
         data={selectedItems}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.food_id}
         renderItem={({ item }) => (
           <View style={[styles.selectedItem, {backgroundColor: darkModeEnabled ? "#333" : "#fff"}]}>
-            <Text style={[styles.foodText, {color: darkModeEnabled ? "#fff" : "#333"}]}>
-              {item.name} - {item.calories} cal
+            <Text multiline={true} maxLength={5} style={[styles.selected_text, {color: darkModeEnabled ? "#fff" : "#333"}]}>
+              {item.food_name} - {item.calories} cal
             </Text>
             <TouchableOpacity
               style={styles.removeButton}
-              onPress={() => handleRemoveFood(item.id)}
+              onPress={() => handleRemoveFood(item.food_id)}
             >
               <Text style={styles.removeButtonText}>Remove</Text>
             </TouchableOpacity>
@@ -174,21 +218,18 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#f9f9f9',
   },
+  selected_text:{
+    padding: 3,
+    fontSize: 16,
+    color: "#333",
+    width: '70%'
+  },
   header: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
     color: '#333',
-  },
-  searchBar: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    marginBottom: 20,
-    backgroundColor: '#fff',
   },
   foodItem: {
     flexDirection: 'row',
@@ -198,6 +239,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 8,
     marginBottom: 10,
+    marginTop: 10,
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
@@ -207,6 +249,8 @@ const styles = StyleSheet.create({
   foodText: {
     fontSize: 16,
     color: '#333',
+    width: '80%',
+    
   },
   addButton: {
     backgroundColor: '#007aff',
@@ -229,7 +273,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 15,
+    padding: 13,
     backgroundColor: '#fff',
     borderRadius: 8,
     marginBottom: 10,
@@ -258,7 +302,6 @@ const styles = StyleSheet.create({
   searchBar: {
     padding: 10,
     borderRadius: 5,
-    marginBottom: 10,
     borderWidth: 1,
     borderColor: "#ccc",
   },
@@ -267,6 +310,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderTopWidth: 0,
     borderBottomColor: "#ddd",
-    borderRadius: 5,
+    borderRadius: 2,
   },
 });

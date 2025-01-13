@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import {
   View,
   Text,
@@ -12,170 +12,250 @@ import {
 } from 'react-native';
 import { PieChart } from 'react-native-chart-kit';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { DMContext } from '../../app/_layout'
-import { useContext } from "react"
+import { DMContext } from '../../app/_layout';
 
-// Dynamically get the screen width for responsive chart scaling
 const screenWidth = Dimensions.get('window').width;
+const MEAL_TYPES = ['Breakfast', 'Lunch', 'Dinner'];
 
 export default function HomeScreen() {
-  // State variables
-  const [modalVisible, setModalVisible] = useState(false); // Controls the visibility of the meal planning modal
-  const [selectedDate, setSelectedDate] = useState(new Date()); // Stores the currently selected date for meal planning
-  const [meals, setMeals] = useState({}); // Stores all meal data, organized by date
-  const [mealText, setMealText] = useState(''); // Temporary state for the meal item being added
-  const [mealType, setMealType] = useState('Breakfast'); // Tracks the selected meal type (Breakfast, Lunch, Dinner)
   const [darkModeEnabled] = useContext(DMContext);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [meals, setMeals] = useState({});
+  const [mealText, setMealText] = useState('');
+  const [mealType, setMealType] = useState(MEAL_TYPES[0]);
 
-  // Toggles the visibility of the modal
-  const toggleModal = () => {
-    setModalVisible(!modalVisible);
+  const theme = {
+    background: darkModeEnabled ? '#1c1b1a' : '#fff',
+    text: darkModeEnabled ? '#fff' : '#333',
+    button: darkModeEnabled ? '#2c2c2c' : '#e0e0e0',
+    buttonActive: '#007aff',
+    border: darkModeEnabled ? '#333' : '#ccc',
   };
 
-  // Adds a meal to the selected date and meal type
+  const macroData = [
+    { name: 'Protein', value: 30, color: '#4287f5' },
+    { name: 'Carbs', value: 40, color: '#f54242' },
+    { name: 'Fats', value: 30, color: '#f5d142' },
+  ].map(item => ({
+    ...item,
+    population: item.value,
+    legendFontColor: theme.text,
+    legendFontSize: 12,
+  }));
+
   const addMeal = () => {
-    const formattedDate = selectedDate.toDateString(); // Format the date to use as a key
-    if (!meals[formattedDate]) {
-      // Initialize date key if it doesn't exist
-      meals[formattedDate] = { Breakfast: [], Lunch: [], Dinner: [] };
-    }
-    meals[formattedDate][mealType].push(mealText); // Add the meal to the correct meal type
-    setMeals({ ...meals });   // Update state with the new meal
-    setMealText('');          // Clear the input field
+    if (!mealText.trim()) return;
+    
+    const formattedDate = selectedDate.toDateString();
+    setMeals(prevMeals => ({
+      ...prevMeals,
+      [formattedDate]: {
+        ...prevMeals[formattedDate] || { Breakfast: [], Lunch: [], Dinner: [] },
+        [mealType]: [...(prevMeals[formattedDate]?.[mealType] || []), mealText],
+      },
+    }));
+    setMealText('');
   };
+
+  const renderMealTypeButton = (type) => (
+    <TouchableOpacity
+      key={type}
+      style={[
+        styles.mealTypeButton,
+        { backgroundColor: mealType === type ? theme.buttonActive : theme.button },
+      ]}
+      onPress={() => setMealType(type)}
+    >
+      <Text style={[styles.mealTypeText, { color: mealType === type ? '#fff' : theme.text }]}>
+        {type}
+      </Text>
+    </TouchableOpacity>
+  );
 
   return (
-    <View style={[styles.container, {backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff'}]}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Calendar Section */}
-      <View style={[styles.calendarSection, {backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff'}]}>
-        <Text style={[styles.sectionHeader, {color: darkModeEnabled ? "#fff" : "#333"}]}>Calendar</Text>
-        <TouchableOpacity style={styles.calendarPlaceholder} onPress={toggleModal}>
-          <Text style={[styles.placeholderText, {backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff'}, {color: darkModeEnabled ? '#fff' : "#333"}]}>Tap to Plan Meals</Text>
+      <View style={styles.section}>
+        <Text style={[styles.sectionHeader, { color: theme.text }]}>Calendar</Text>
+        <TouchableOpacity 
+          style={[styles.calendarButton, { backgroundColor: theme.button }]} 
+          onPress={() => setModalVisible(true)}
+        >
+          <Text style={[styles.buttonText, { color: theme.text }]}>
+            Plan Meals for {selectedDate.toLocaleDateString()}
+          </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Meal Planning Modal */}
-      <Modal visible={modalVisible} transparent={true} animationType="slide">
-        <View style={[styles.modalContainer, {backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff'}]}>
-          <View style={[styles.modalContent, {backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff"}]}>
-            <Text style={styles.modalHeader}>Plan Meals for {selectedDate.toDateString()}</Text>
+      {/* Today's Overview */}
+      <View style={styles.section}>
+        <Text style={[styles.sectionHeader, { color: theme.text }]}>Today's Meals</Text>
+        {MEAL_TYPES.map(type => (
+          <Text key={type} style={[styles.mealText, { color: theme.text }]}>
+            {meals[selectedDate.toDateString()]?.[type]?.length ? '☑' : '☐'} {type}
+          </Text>
+        ))}
+      </View>
 
-            {/* Date Picker */}
+      {/* Macros Chart */}
+      <View style={styles.section}>
+        <Text style={[styles.sectionHeader, { color: theme.text }]}>Macros</Text>
+        <PieChart
+          data={macroData}
+          width={screenWidth - 40}
+          height={200}
+          chartConfig={{
+            backgroundColor: 'transparent',
+            backgroundGradientFrom: theme.background,
+            backgroundGradientTo: theme.background,
+            color: (opacity = 1) => `rgba(${darkModeEnabled ? '255, 255, 255' : '0, 0, 0'}, ${opacity})`,
+            strokeWidth: 2,
+          }}
+          accessor="value"
+          backgroundColor="transparent"
+          paddingLeft="15"
+        />
+      </View>
+
+      {/* Meal Planning Modal */}
+      <Modal visible={modalVisible} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: theme.background }]}>
+            <Text style={[styles.modalHeader, { color: theme.text }]}>
+              Plan Meals
+            </Text>
+
             <DateTimePicker
               value={selectedDate}
               mode="date"
               display="default"
-              onChange={(event, date) => {
-                if (event.type === 'set' && date) {
-                  setSelectedDate(date); // Update selected date
-                }
-                toggleModal(); // Close the modal
-              }}
+              onChange={(_, date) => date && setSelectedDate(date)}
+              style={styles.datePicker}
             />
 
-            {/* Meal Type Selector */}
-            <View style={[styles.mealTypeContainer, {backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff"}]}>
-              {['Breakfast', 'Lunch', 'Dinner'].map((type) => (
-                <TouchableOpacity
-                  key={type}
-                  style={[styles.mealTypeButton, mealType === type && styles.activeMealType]}
-                  onPress={() => setMealType(type)} // Update the selected meal type
-                >
-                  <Text style={[styles.mealTypeText, {backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff"}]}>{type}</Text>
-                </TouchableOpacity>
-              ))}
+            <View style={styles.mealTypeContainer}>
+              {MEAL_TYPES.map(renderMealTypeButton)}
             </View>
 
-            {/* Meal Input */}
             <TextInput
-              style={styles.input}
+              style={[styles.input, { borderColor: theme.border, color: theme.text }]}
               placeholder={`Add a ${mealType} item`}
+              placeholderTextColor={theme.text}
               value={mealText}
-              onChangeText={setMealText} // Update the input field state
+              onChangeText={setMealText}
             />
-            <Button title="Add Meal" onPress={addMeal} />
 
-            {/* Scheduled Meals */}
-            <Text style={styles.scheduledHeader}>Scheduled Meals</Text>
             <FlatList
-              data={meals[selectedDate.toDateString()]?.[mealType] || []} // Retrieve meals for the selected date and type
+              data={meals[selectedDate.toDateString()]?.[mealType] || []}
               keyExtractor={(item, index) => `${item}-${index}`}
-              renderItem={({ item }) => <Text style={styles.scheduledMeal}>{item}</Text>}
+              renderItem={({ item }) => (
+                <Text style={[styles.mealItem, { color: theme.text }]}>{item}</Text>
+              )}
               ListEmptyComponent={
-                <Text style={styles.emptyText}>No {mealType} items scheduled.</Text>
+                <Text style={[styles.emptyText, { color: theme.text }]}>
+                  No {mealType.toLowerCase()} planned
+                </Text>
               }
+              style={styles.mealList}
             />
 
-            {/* Close Modal */}
-            <Button title="Close" onPress={toggleModal} />
+            <View style={styles.modalButtons}>
+              <Button title="Add Meal" onPress={addMeal} />
+              <Button title="Close" onPress={() => setModalVisible(false)} />
+            </View>
           </View>
         </View>
       </Modal>
-
-      {/* Today's Meals and Macros Section */}
-      <View style={[styles.mealsAndMacros, {backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff"}]}>
-        <View style={[styles.mealsSection, {backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff"}]}>
-          <Text style={[styles.sectionHeader, {color: darkModeEnabled ? "#fff" : "#333"}]}>Today's Meals</Text>
-          <Text style={[styles.mealText, {color: darkModeEnabled ? "#fff" : "#333"}]}>☑ Breakfast</Text>
-          <Text style={[styles.mealText, {color: darkModeEnabled ? "#fff" : "#333"}]}>☐ Lunch</Text>
-          <Text style={[styles.mealText, {color: darkModeEnabled ? "#fff" : "#333"}]}>☐ Dinner</Text>
-        </View>
-        <View style={styles.macrosSection}>
-          <Text style={[styles.sectionHeader, {color: darkModeEnabled ? "#fff" : "#333"}]}>Macros</Text>
-          <PieChart
-            data={[
-              { name: 'Protein', population: 30, color: 'blue', legendFontColor: darkModeEnabled ? "#fff" : "#333", legendFontSize: 12 },
-              { name: 'Carbs', population: 40, color: 'red', legendFontColor: darkModeEnabled ? "#fff" : "#333", legendFontSize: 12 },
-              { name: 'Fats', population: 30, color: 'yellow', legendFontColor: darkModeEnabled ? "#fff" :"#333", legendFontSize: 12 },
-            ]}
-            width={screenWidth * 0.8} // Chart width scales with screen size
-            height={150}
-            chartConfig={{
-              backgroundColor: 'transparent',
-              backgroundGradientFrom: '#ffffff',
-              backgroundGradientTo: '#ffffff',
-              color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-              strokeWidth: 2,
-              barPercentage: 0.5,
-            }}
-            accessor="population"
-            backgroundColor="transparent"
-            paddingLeft="15"
-          />
-        </View>
-      </View>
     </View>
   );
 }
 
-// Styles for the UI components
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20},
-  calendarSection: { marginBottom: 20},
-  sectionHeader: { fontSize: 22, fontWeight: 'bold', marginBottom: 10 },
-  calendarPlaceholder: {
-    height: 120,
+  container: {
+    flex: 1,
+    padding: 20,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionHeader: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  calendarButton: {
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  mealText: {
+    fontSize: 16,
+    marginVertical: 4,
+  },
+  modalOverlay: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 3,
-    padding: 10,
-    backGroundColor: '#83d62f'
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  placeholderText: {  fontStyle: 'italic', fontWeight: '600',},
-  modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' },
-  modalContent: { backgroundColor: '#fff', padding: 20, borderRadius: 10, width: '90%' },
-  modalHeader: { fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
-  mealTypeContainer: { flexDirection: 'row', justifyContent: 'space-between', marginVertical: 10 },
-  mealTypeButton: { padding: 10, borderRadius: 5, backgroundColor: '#e0e0e0' },
-  activeMealType: { backgroundColor: '#007aff' },
-  mealTypeText: { color: '#333' },
-  input: { height: 50, borderColor: '#ccc', borderWidth: 1, borderRadius: 5, marginBottom: 10, paddingHorizontal: 10 },
-  scheduledHeader: { fontSize: 18, fontWeight: 'bold', marginTop: 20, marginBottom: 10 },
-  scheduledMeal: { fontSize: 16, marginBottom: 5 },
-  emptyText: { fontStyle: 'italic', color: '#aaa' },
+  modalContent: {
+    width: '90%',
+    borderRadius: 16,
+    padding: 20,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  datePicker: {
+    marginVertical: 16,
+  },
+  mealTypeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  mealTypeButton: {
+    padding: 12,
+    borderRadius: 8,
+    flex: 1,
+    marginHorizontal: 4,
+    alignItems: 'center',
+  },
+  mealTypeText: {
+    fontWeight: '600',
+  },
+  input: {
+    height: 48,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginBottom: 16,
+  },
+  mealList: {
+    maxHeight: 200,
+    marginVertical: 16,
+  },
+  mealItem: {
+    fontSize: 16,
+    paddingVertical: 8,
+  },
+  emptyText: {
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginVertical: 16,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 16,
+  },
 });
