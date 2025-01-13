@@ -68,7 +68,8 @@ const[foodItems, setFoodItems] = useState([]);
 
         const foodNames = food.food.map((item) => ({
             food_id: item.food_id,
-            food_name: item.food_name
+            food_name: item.food_name,
+            brand_name: item.brand_name
         }));
       
         
@@ -105,19 +106,21 @@ const[foodItems, setFoodItems] = useState([]);
     try {
         const food_info = await callFindByID(food_id);
 
-        // Log the structure of food_info
-        //console.log('Fetched food_info:', food_info);
-        const protein = food_info[2]?.serving[0].protein;
-        const fat = food_info[2]?.serving[0].fat;
-        const carbohydrate = food_info[2]?.serving[0].carbohydrate;
-        const fiber = food_info[2]?.serving[0].fiber;
-
- 
-
-
         // Validate food_info[2].serving
         if (food_info && Array.isArray(food_info[2]?.serving) && food_info[2].serving.length > 0) {
-            navigation.navigate('Macros Screen', { food_info, protein: food_info[2]?.serving[0].protein, fat: food_info[2]?.serving[0].fat, carbohydrate: food_info[2]?.serving[0].carbohydrate , fiber: food_info[2]?.serving[0].fiber });
+            navigation.navigate('Macros Screen', { 
+              food_info, 
+              protein: food_info[2]?.serving[0].protein, 
+              fat: food_info[2]?.serving[0].fat, 
+              carbohydrate: food_info[2]?.serving[0].carbohydrate , 
+              fiber: food_info[2]?.serving[0].fiber,
+              vitamin_c: food_info[2]?.serving[0].vitamin_c,
+              iron: food_info[2]?.serving[0].iron,
+              vitamin_a: food_info[2]?.serving[0].vitamin_a,
+              calcium: food_info[2]?.serving[0].calcium,
+              sodium: food_info[2]?.serving[0].sodium,
+              potassium: food_info[2]?.serving[0].potassium,
+            });
         } else {
             console.log('Invalid food_info, no serving found');
             alert('No valid serving data found for this food item.');
@@ -165,7 +168,7 @@ const[foodItems, setFoodItems] = useState([]);
         keyExtractor={(item) => item.food_id}
         renderItem={({ item }) => (
           <View style={[styles.foodItem, {backgroundColor: darkModeEnabled ? "#333" : "#fff"}]}>
-            <Text multiline={true} style={[styles.foodText, {color: darkModeEnabled ? "#fff" : "#333"}]}>{item.food_name}</Text>
+            <Text multiline={true} style={[styles.foodText, {color: darkModeEnabled ? "#fff" : "#333"}]}>{item.food_name} ({(item.brand_name != null) ? item.brand_name : "Generic"})</Text>
             <TouchableOpacity
               style={styles.addButton}
               onPress={() => handleMacroNav(item.food_id)}
@@ -228,15 +231,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#333',
   },
-  searchBar: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    marginBottom: 20,
-    backgroundColor: '#fff',
-  },
   foodItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -245,6 +239,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 8,
     marginBottom: 10,
+    marginTop: 10,
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
@@ -307,7 +302,6 @@ const styles = StyleSheet.create({
   searchBar: {
     padding: 10,
     borderRadius: 5,
-    marginBottom: 10,
     borderWidth: 1,
     borderColor: "#ccc",
   },
@@ -316,6 +310,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderTopWidth: 0,
     borderBottomColor: "#ddd",
-    borderRadius: 5,
+    borderRadius: 2,
   },
 });

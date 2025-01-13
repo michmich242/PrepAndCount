@@ -5,6 +5,7 @@ import {
     TextInput,
     ScrollView,
     SafeAreaView,
+    TextComponent,
 } from 'react-native';
 import { callFindByID, callSearch } from "../../callAPI.js";
 import { DMContext } from "../../app/_layout";
@@ -17,10 +18,17 @@ import { Dropdown } from 'react-native-element-dropdown';
 
 export default function MacrosScreen( { route } ) {
     const food_info = route.params.food_info; // first index holds name, second index holds brand name, third index holds serving array
-    let { protein, fat, carbohydrate, fiber } = route.params;
-
-
-    
+    let { protein, 
+        fat, 
+        carbohydrate, 
+        fiber, 
+        vitamin_c, 
+        iron, 
+        vitamin_a, 
+        calcium, 
+        sodium, 
+        potassium 
+    } = route.params;
 
     let net_carb = carbohydrate
 
@@ -36,10 +44,6 @@ export default function MacrosScreen( { route } ) {
     const protein_percentage = Math.round((100 * (protein/(protein + fat + net_carb))));
     const fat_percentage = Math.round((100 * (fat/(protein + fat + net_carb))));
     const net_carb_percentage = Math.round((100 * (net_carb/(protein + fat + net_carb))))
-    console.log(protein);
-    console.log(fat);
-    console.log(net_carb);
-    console.log(protein_percentage);
 
 
 
@@ -60,6 +64,26 @@ export default function MacrosScreen( { route } ) {
         { value: -1, color: '#ffb300' },
         { value: -1, color: '#ff9100' },
     ]);
+    
+    const [nutrition, setNutrition] = useState([
+        { label: "Protein", value: food_info[2]?.serving[0].protein, unit: "g" },
+        { label: "Fat", value: food_info[2]?.serving[0].fat, unit: "g" },
+        { label: "Carbohydrate", value: food_info[2]?.serving[0].carbohydrate, unit: "g" },
+        { label: "Saturated Fat", value: food_info[2]?.serving[0].saturated_fat, unit: "g" },
+        { label: "Unsaturated Fat", value: food_info[2]?.serving[0].unsaturated_fat, unit: "g" },
+        { label: "Trans Fat", value: food_info[2]?.serving[0].trans_fat, unit: "g" },
+        { label: "Sugar", value: food_info[2]?.serving[0].sugar, unit: "g" },
+        { label: "Fiber", value: food_info[2]?.serving[0].fiber, unit: 'g'},
+        { label: "Vitamin C", value: food_info[2]?.serving[0].vitamin_c, unit: 'mg'},
+        { label: "Iron", value: food_info[2]?.serving[0].iron, unit: 'mg' },
+        { label: "Vitamin A", value: food_info[2]?.serving[0].vitamin_a, unit: 'IU' },
+        { label: "Sodium (mg)", value: food_info[2]?.serving[0].sodium, unit: 'mg' },
+        { label: "Calcium", value: food_info[2]?.serving[0].calcium, unit: 'mg' },
+        { label: "Potassium", value: food_info[2]?.serving[0].potassium, unit: 'mg' }
+    ]);
+
+    
+
 
 
 
@@ -84,6 +108,24 @@ export default function MacrosScreen( { route } ) {
 
         setTotalCalories(food_info[2].serving[index].calories);
 
+        setNutrition([
+            { label: "Protein", value: food_info[2]?.serving[index].protein, unit: "g" },
+            { label: "Fat", value: food_info[2]?.serving[index].fat, unit: "g" },
+            { label: "Carbohydrate", value: food_info[2]?.serving[index].carbohydrate, unit: "g" },
+            { label: "Saturated Fat", value: food_info[2]?.serving[index].saturated_fat, unit: "g" },
+            { label: "Unsaturated Fat", value: food_info[2]?.serving[index].unsaturated_fat, unit: "g" },
+            { label: "Trans Fat", value: food_info[2]?.serving[index].trans_fat, unit: "g" },
+            { label: "Sugar", value: food_info[2]?.serving[index].sugar, unit: "g" },
+            { label: "Fiber", value: food_info[2]?.serving[index].fiber, unit: "g" },
+            { label: "Vitamin C", value: food_info[2]?.serving[index].vitamin_c, unit: "mg" },
+            { label: "Iron", value: food_info[2]?.serving[index].iron, unit: "mg" },
+            { label: "Vitamin A", value: food_info[2]?.serving[index].vitamin_a, unit: "IU" },
+            { label: "Sodium", value: food_info[2]?.serving[index].sodium, unit: "mg" },
+            { label: "Calcium", value: food_info[2]?.serving[index].calcium, unit: "mg" },
+            { label: "Sodium", value: food_info[2]?.serving[index].sodium, unit: "mcg" },
+            { label: "Potassium", value: food_info[2]?.serving[index].potassium, unit: "mg" }
+        ]);
+
     }
 
 
@@ -100,7 +142,7 @@ export default function MacrosScreen( { route } ) {
                         <Text style={styles.sectionHeader}>General Information</Text>
                         <View style={styles.card}>
                             <View style={styles.infoRow}>
-                                <Text style={styles.label}>{food_info[0]} ({food_info[1]})</Text>
+                                <Text style={styles.label}>{food_info[0]} ({(food_info[1] != null ? food_info[1] : "Generic")})</Text>
                             </View>
                             <View style={styles.separator} />
                             <View style={styles.infoRow}>
@@ -178,7 +220,7 @@ export default function MacrosScreen( { route } ) {
                                         cover={0.6}
                                     />
                                     <View style={styles.chartOverlay}>
-                                        <Text style={styles.overlayText}>{totalCalories}</Text>
+                                        <Text style={styles.overlayText}>{quantity * totalCalories}</Text>
                                         <Text style={styles.overlaySubText}>kCal</Text>
                                     </View>
                                 </View>
@@ -188,7 +230,16 @@ export default function MacrosScreen( { route } ) {
                         {/* Nutrition Facts Card */}
                         <View style={styles.card}>
                             <Text style={styles.cardTitle}>Nutrition Facts</Text>
-                            {/* Add nutrition facts content here */}
+                            <View style={styles.nutritionFactsContainer}>
+                                {nutrition.map((item, index) => (
+                                    item.value != null && //only output valid nutrition facts
+
+                                    <View key={index} style={styles.nutritionRow}>
+                                        <Text style={styles.nutritionLabel}>{item.label}</Text>
+                                        <Text style={styles.nutritionValue}>{(item.value * quantity) + " " + item.unit} </Text>
+                                    </View>
+                                ))}
+                            </View>
                         </View>
                     </View>
                 </View>
@@ -328,4 +379,26 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
     },
+    nutritionFactsContainer: {
+        flexDirection: 'column',
+        marginTop: 8,
+        borderTopWidth: 1,
+        borderTopColor: '#eee',
+        paddingTop: 8,
+    },
+    nutritionRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingVertical: 4,
+    },
+    nutritionLabel: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#333',
+    },
+    nutritionValue: {
+        fontSize: 16,
+        color: '#666',
+    },
+    
 });
