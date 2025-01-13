@@ -17,6 +17,33 @@ import { Dropdown } from 'react-native-element-dropdown';
 
 export default function MacrosScreen( { route } ) {
     const food_info = route.params.food_info; // first index holds name, second index holds brand name, third index holds serving array
+    let { protein, fat, carbohydrate, fiber } = route.params;
+
+
+    
+
+    let net_carb = carbohydrate
+
+    
+    if(fiber){
+        net_carb -= fiber;
+    }
+
+    protein = Math.round(protein);
+    fat = Math.round(fat);
+    net_carb = Math.round(net_carb);
+
+    const protein_percentage = Math.round((100 * (protein/(protein + fat + net_carb))));
+    const fat_percentage = Math.round((100 * (fat/(protein + fat + net_carb))));
+    const net_carb_percentage = Math.round((100 * (net_carb/(protein + fat + net_carb))))
+    console.log(protein);
+    console.log(fat);
+    console.log(net_carb);
+    console.log(protein_percentage);
+
+
+
+
     const navigation = useNavigation();
     const widthAndHeight = 125;
     let index = 0;
@@ -29,12 +56,12 @@ export default function MacrosScreen( { route } ) {
     const [quantity, setQuantity] = useState(1);
     const[totalCalories, setTotalCalories] = useState(food_info[2].serving[0].calories);
     const[macros, setMacros] = useState([
-        { value: food_info[2].serving[0].protein, color: '#fbd203' },
-        { value: food_info[2].serving[0].fat, color: '#ffb300' },
-        { value: food_info[2].serving[0].carbohydrate - food_info[2].serving[index].fiber, color: '#ff9100' },
+        { value: -1, color: '#fbd203' },
+        { value: -1, color: '#ffb300' },
+        { value: -1, color: '#ff9100' },
     ]);
 
-    console.log(macros);
+
 
     const[serving, setServing] = useState(servingOptions[0]);
     const [isFocus, setIsFocus] = useState(false);
@@ -59,14 +86,6 @@ export default function MacrosScreen( { route } ) {
 
     }
 
-    useEffect(() => {
-        setMacros([
-            { value: macros[0] * quantity, color: '#fbd203' },
-            { value: macros[0] * quantity, color: '#ffb300' },
-            { value: macros[0] * quantity, color: '#ff9100' },
-        ]);
-
-    }, [quantity])
 
     return (
         <SafeAreaView style={styles.mainContainer}>
@@ -91,6 +110,17 @@ export default function MacrosScreen( { route } ) {
                                     placeholder="Enter amount"
                                     placeholderTextColor="#999"
                                     keyboardType="numeric"
+                                    onChangeText={ (the_amount) =>{
+                                        if(the_amount === ''){
+                                           setQuantity(1); 
+                                        }
+                                        else{
+                                            setQuantity(the_amount)
+                                        }
+                                        }
+                                    }
+
+
                                 />
                             </View>
                             <View style={styles.separator} />
@@ -131,15 +161,20 @@ export default function MacrosScreen( { route } ) {
                             <Text style={styles.cardTitle}>Energy Summary</Text>
                             <View style={styles.chartContainer}>
                                 <View style={styles.legendContainer}>
-                                    <Text style={[styles.legendText, { color: '#fbd203' }]}>Protein ({Math.trunc(macros[0].value)}g) - 60%</Text>
-                                    <Text style={[styles.legendText, { color: '#ffb300' }]}>Fat ({Math.trunc(macros[1].value)}g) - 30%</Text>
-                                    <Text style={[styles.legendText, { color: '#ff9100' }]}>Net Carbs ({Math.trunc(macros[2].value)}g) - 10%</Text>
+                                    <Text style={[styles.legendText, { color: '#fbd203' }]}>Protein ({quantity * (Math.trunc(macros[0].value) !== -1 ? Math.trunc(macros[0].value) : protein)}g) - {protein_percentage}%</Text>
+                                    <Text style={[styles.legendText, { color: '#ffb300' }]}>Fat ({quantity * (Math.trunc(macros[1].value) !== -1 ? Math.trunc(macros[1].value) : fat)}g) - {fat_percentage}%</Text>
+                                    <Text style={[styles.legendText, { color: '#ff9100' }]}>Net Carbs ({quantity * (Math.trunc(macros[2].value) !== -1 ? Math.trunc(macros[2].value) : net_carb)}g) - {net_carb_percentage}%</Text>
                                 </View>
                                 
                                 <View style={styles.pieContainer}>
+
                                     <PieChart 
                                         widthAndHeight={widthAndHeight} 
-                                        series={macros} 
+                                        series={[
+                                            { value: protein, color: "#fbd203" }, // Protein
+                                            { value: fat, color: "#ffb300" }, // Fat
+                                            { value: net_carb, color: "#ff9100" }, // Carbs
+                                        ]} 
                                         cover={0.6}
                                     />
                                     <View style={styles.chartOverlay}>
