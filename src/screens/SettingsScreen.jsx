@@ -5,11 +5,13 @@ import { DMContext } from '../../app/_layout';
 import { useContext } from "react";
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { useMacros } from '../../hooks/macroContext';
 
 export default function SettingsScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [darkModeEnabled, setDarkModeEnabled] = useContext(DMContext);
   const navigation = useNavigation();
+  const { state, dispatch } = useMacros();
 
   const toggleNotifications = () =>
     setNotificationsEnabled((prevState) => !prevState);
@@ -22,7 +24,7 @@ export default function SettingsScreen() {
       'Are you sure you want to reset all settings?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Reset', style: 'destructive', onPress: () => console.log('Settings reset!') },
+        { text: 'Reset', style: 'destructive', onPress: () => dispatch({type: 'RESET'})},
       ]
     );
   };

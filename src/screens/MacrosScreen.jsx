@@ -7,7 +7,6 @@ import {
     SafeAreaView,
     TextComponent,
 } from 'react-native';
-import { callFindByID, callSearch } from "../../callAPI.js";
 import { DMContext } from "../../app/_layout";
 import { StyleSheet } from 'react-native';
 import { useContext, useEffect, useState } from 'react';
@@ -15,19 +14,16 @@ import PieChart from 'react-native-pie-chart'
 import { useNavigation } from 'expo-router';
 import { formatDiagnostic } from 'typescript';
 import { Dropdown } from 'react-native-element-dropdown';
+import { useMacros } from '../../hooks/macroContext.js';
 
 export default function MacrosScreen( { route } ) {
+    const { state, dispatch } = useMacros();
+
     const food_info = route.params.food_info; // first index holds name, second index holds brand name, third index holds serving array
     let { protein, 
         fat, 
         carbohydrate, 
         fiber, 
-        vitamin_c, 
-        iron, 
-        vitamin_a, 
-        calcium, 
-        sodium, 
-        potassium 
     } = route.params;
 
     let net_carb = carbohydrate
@@ -128,6 +124,31 @@ export default function MacrosScreen( { route } ) {
 
     }
 
+    
+    const handleAddItem = (index) => {
+        dispatch({
+            type: 'ADD_ITEM',
+            payload: {
+                calories: { value: food_info[2]?.serving[index].calories * quantity, unit: "kCal" },
+                protein: { value: food_info[2]?.serving[index].protein * quantity, unit: "g" },
+                fat: { value: food_info[2]?.serving[index].fat * quantity, unit: "g" },
+                carbohydrate: { value: food_info[2]?.serving[index].carbohydrate * quantity, unit: "g" },
+                saturated_fat: { value: food_info[2]?.serving[index].saturated_fat * quantity, unit: "g" },
+                unsaturated_fat: { value: food_info[2]?.serving[index].unsaturated_fat * quantity, unit: "g" },
+                trans_fat: { value: food_info[2]?.serving[index].trans_fat * quantity, unit: "g" },
+                sugar: { value: food_info[2]?.serving[index].sugar * quantity, unit: "g" },
+                fiber: { value: food_info[2]?.serving[index].fiber * quantity, unit: "g" },
+                vitamin_c: { value: food_info[2]?.serving[index].vitamin_c * quantity, unit: "mg" },
+                iron: { value: food_info[2]?.serving[index].iron * quantity, unit: "mg" },
+                vitamin_a: { value: food_info[2]?.serving[index].vitamin_a * quantity, unit: "IU" },
+                sodium: { value: food_info[2]?.serving[index].sodium * quantity, unit: "mg" },
+                calcium: { value: food_info[2]?.serving[index].calcium * quantity, unit: "mg" },
+                potassium: { value: food_info[2]?.serving[index].potassium * quantity, unit: "mg" },
+            }
+        })
+        
+        console.log(state)
+    }
 
     return (
         <SafeAreaView style={styles.mainContainer}>
@@ -247,7 +268,12 @@ export default function MacrosScreen( { route } ) {
 
             {/* Add Button */}
             <View style={styles.buttonContainer}>
-                <TouchableOpacity style={styles.addButton} onPress={handleGoBack}>
+                <TouchableOpacity style={styles.addButton} onPress={ () => 
+                    {
+                        handleAddItem(index);
+                        handleGoBack();
+                    }
+                }>
                     <Text style={styles.addButtonText}>Add</Text>
                 </TouchableOpacity>
             </View>
