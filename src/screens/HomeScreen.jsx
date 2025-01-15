@@ -13,6 +13,7 @@ import {
 import { PieChart } from 'react-native-chart-kit';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { DMContext } from '../../app/_layout';
+import { useMacros } from '../../hooks/macroContext';
 
 const screenWidth = Dimensions.get('window').width;
 const MEAL_TYPES = ['Breakfast', 'Lunch', 'Dinner'];
@@ -24,6 +25,7 @@ export default function HomeScreen() {
   const [meals, setMeals] = useState({});
   const [mealText, setMealText] = useState('');
   const [mealType, setMealType] = useState(MEAL_TYPES[0]);
+  const { state, dispatch } = useMacros();
 
   const theme = {
     background: darkModeEnabled ? '#1c1b1a' : '#fff',
@@ -31,18 +33,14 @@ export default function HomeScreen() {
     button: darkModeEnabled ? '#2c2c2c' : '#e0e0e0',
     buttonActive: '#007aff',
     border: darkModeEnabled ? '#333' : '#ccc',
+    card: darkModeEnabled ? '#2c2c2c' : '#fff',
   };
 
-  const macroData = [
-    { name: 'Protein', value: 30, color: '#4287f5' },
-    { name: 'Carbs', value: 40, color: '#f54242' },
-    { name: 'Fats', value: 30, color: '#f5d142' },
-  ].map(item => ({
-    ...item,
-    population: item.value,
-    legendFontColor: theme.text,
-    legendFontSize: 12,
-  }));
+  // Calculate total macros
+  const totalMacros = state.protein.value + state.fat.value + (state.carbohydrate.value - state.fiber.value);
+  const proteinPercentage = Math.round((100 * (state.protein.value / totalMacros)));
+  const fatPercentage = Math.round((100 * (state.fat.value / totalMacros)));
+  const netCarbPercentage = Math.round((100 * ((state.carbohydrate.value - state.fiber.value) / totalMacros)));
 
   const addMeal = () => {
     if (!mealText.trim()) return;
@@ -98,46 +96,86 @@ export default function HomeScreen() {
         ))}
       </View>
 
-      {/* Macros Chart */}
+      {/* Macros Section */}
       <View style={styles.section}>
         <Text style={[styles.sectionHeader, { color: theme.text }]}>Macros</Text>
-        <PieChart
-          data={macroData}
-          width={screenWidth - 40}
-          height={200}
-          chartConfig={{
-            backgroundColor: 'transparent',
-            backgroundGradientFrom: theme.background,
-            backgroundGradientTo: theme.background,
-            color: (opacity = 1) => `rgba(${darkModeEnabled ? '255, 255, 255' : '0, 0, 0'}, ${opacity})`,
-            strokeWidth: 2,
-          }}
-          accessor="value"
-          backgroundColor="transparent"
-          paddingLeft="15"
-        />
+        <View style={[styles.card, { backgroundColor: theme.card }]}>
+          <Text style={[styles.cardTitle, { color: theme.text }]}>Energy Summary</Text>
+          <View style={styles.chartContainer}>
+            <View style={styles.legendContainer}>
+              <Text style={[styles.legendText, { color: '#fbd203' }]}>
+                Protein ({state.protein.value}g) - {(proteinPercentage) ? proteinPercentage : 0}%
+              </Text>
+              <Text style={[styles.legendText, { color: '#ffb300' }]}>
+                Fat ({state.fat.value}g) - {(fatPercentage) ? fatPercentage : 0}%
+              </Text>
+              <Text style={[styles.legendText, { color: '#ff9100' }]}>
+                Net Carbs ({state.carbohydrate.value - state.fiber.value}g) - {(netCarbPercentage) ? netCarbPercentage : 0}%
+              </Text>
+            </View>
+            <View style={styles.rightContainer}>
+              <View style={styles.pieContainer}>
+              <PieChart
+                data={[
+                  {
+                    name: `Protein ${state.protein.value}g`,
+                    population: state.protein.value,
+                    color: '#fbd203',
+                    legendFontColor: theme.text,
+                  },
+                  {
+                    name: `Fat ${state.fat.value}g`,
+                    population: state.fat.value,
+                    color: '#ffb300',
+                    legendFontColor: theme.text,
+                  },
+                  {
+                    name: `Net Carbs ${state.carbohydrate.value - state.fiber.value}g`,
+                    population: state.carbohydrate.value - state.fiber.value,
+                    color: '#ff9100',
+                    legendFontColor: theme.text,
+                  }
+                ]}
+                width={500}
+                height={200}
+                chartConfig={{
+                  color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+                  backgroundGradientFrom: '#1E2923',
+                  backgroundGradientTo: '#08130D',
+                  strokeWidth: 2, 
+                  barPercentage: 0.5,
+                  propsForLabels: {
+                    display: false
+                  }
+                }}
+                accessor="population"
+                backgroundColor="transparent"
+                paddingLeft="15"
+                hasLegend={false}
+                center={[screenWidth / 4, 0]}
+              />
+              </View>
+              <View style={styles.calorieContainer}>
+                <Text style={[styles.calorieValue, { color: theme.text }]}>
+                  {state.calories.value}
+                </Text>
+                <Text style={[styles.calorieUnit, { color: theme.text }]}>
+                  kCal
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
       </View>
 
       {/* Meal Planning Modal */}
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: theme.background }]}>
-            <Text style={[styles.modalHeader, { color: theme.text }]}>
-              Plan Meals
-            </Text>
-
-            <DateTimePicker
-              value={selectedDate}
-              mode="date"
-              display="default"
-              onChange={(_, date) => date && setSelectedDate(date)}
-              style={styles.datePicker}
-            />
-
+            <Text style={[styles.modalHeader, { color: theme.text }]}>Plan Meals</Text>
             <View style={styles.mealTypeContainer}>
               {MEAL_TYPES.map(renderMealTypeButton)}
             </View>
-
             <TextInput
               style={[styles.input, { borderColor: theme.border, color: theme.text }]}
               placeholder={`Add a ${mealType} item`}
@@ -145,7 +183,6 @@ export default function HomeScreen() {
               value={mealText}
               onChangeText={setMealText}
             />
-
             <FlatList
               data={meals[selectedDate.toDateString()]?.[mealType] || []}
               keyExtractor={(item, index) => `${item}-${index}`}
@@ -159,7 +196,6 @@ export default function HomeScreen() {
               }
               style={styles.mealList}
             />
-
             <View style={styles.modalButtons}>
               <Button title="Add Meal" onPress={addMeal} />
               <Button title="Close" onPress={() => setModalVisible(false)} />
@@ -172,6 +208,81 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionHeader: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 12,
+  },
+  card: {
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 16,
+  },
+  chartContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  legendContainer: {
+    flex: 1,
+    paddingRight: 16,
+  },
+  legendText: {
+    fontSize: 14,
+    marginVertical: 4,
+    fontWeight: '500',
+  },
+  rightContainer: {
+    position: 'relative',
+    width: 125,
+    height: 125,
+  },
+  pieContainer: {
+    position: 'absolute',
+    left: -196,
+    bottom: -35,
+  },
+  calorieContainer: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [
+      { translateX: -65 },
+      { translateY: -53 }, 
+    ],
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    padding: 0, 
+    width: 100, 
+    height: 100, 
+    borderRadius: 50,
+  },
+  calorieValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  calorieUnit: {
+    fontSize: 14,
+    color: '#666',
+  },
   container: {
     flex: 1,
     padding: 20,
