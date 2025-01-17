@@ -104,13 +104,13 @@ export default function HomeScreen() {
           <View style={styles.chartContainer}>
             <View style={styles.legendContainer}>
               <Text style={[styles.legendText, { color: '#fbd203' }]}>
-                Protein ({state.protein.value}g) - {(proteinPercentage) ? proteinPercentage : 0}%
+                Protein ({Math.round(state.protein.value)}g) - {(proteinPercentage) ? Math.round(proteinPercentage) : 0}%
               </Text>
               <Text style={[styles.legendText, { color: '#ffb300' }]}>
-                Fat ({state.fat.value}g) - {(fatPercentage) ? fatPercentage : 0}%
+                Fat ({Math.round(state.fat.value)}g) - {(fatPercentage) ? Math.round(fatPercentage) : 0}%
               </Text>
               <Text style={[styles.legendText, { color: '#ff9100' }]}>
-                Net Carbs ({state.carbohydrate.value - state.fiber.value}g) - {(netCarbPercentage) ? netCarbPercentage : 0}%
+                Net Carbs ({Math.round(state.carbohydrate.value - state.fiber.value)}g) - {(netCarbPercentage) ? Math.round(netCarbPercentage) : 0}%
               </Text>
             </View>
             <View style={styles.rightContainer}>

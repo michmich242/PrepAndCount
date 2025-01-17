@@ -12,7 +12,6 @@ import { StyleSheet } from 'react-native';
 import { useContext, useEffect, useState } from 'react';
 import PieChart from 'react-native-pie-chart'
 import { useNavigation } from 'expo-router';
-import { formatDiagnostic } from 'typescript';
 import { Dropdown } from 'react-native-element-dropdown';
 import { useMacros } from '../../hooks/macroContext.js';
 
@@ -86,6 +85,7 @@ export default function MacrosScreen( { route } ) {
     const[serving, setServing] = useState(servingOptions[0]);
     const [isFocus, setIsFocus] = useState(false);
     const [darkModeEnabled] = useContext(DMContext);
+    const [servingIndex, setServingIndex] = useState(0);
 
     
     const handleGoBack = () => {
@@ -125,30 +125,28 @@ export default function MacrosScreen( { route } ) {
     }
 
     
-    const handleAddItem = (index) => {
+    const handleAddItem = () => {
         dispatch({
             type: 'ADD_ITEM',
             payload: {
-                calories: { value: food_info[2]?.serving[index].calories * quantity, unit: "kCal" },
-                protein: { value: food_info[2]?.serving[index].protein * quantity, unit: "g" },
-                fat: { value: food_info[2]?.serving[index].fat * quantity, unit: "g" },
-                carbohydrate: { value: food_info[2]?.serving[index].carbohydrate * quantity, unit: "g" },
-                saturated_fat: { value: food_info[2]?.serving[index].saturated_fat * quantity, unit: "g" },
-                unsaturated_fat: { value: food_info[2]?.serving[index].unsaturated_fat * quantity, unit: "g" },
-                trans_fat: { value: food_info[2]?.serving[index].trans_fat * quantity, unit: "g" },
-                sugar: { value: food_info[2]?.serving[index].sugar * quantity, unit: "g" },
-                fiber: { value: food_info[2]?.serving[index].fiber * quantity, unit: "g" },
-                vitamin_c: { value: food_info[2]?.serving[index].vitamin_c * quantity, unit: "mg" },
-                iron: { value: food_info[2]?.serving[index].iron * quantity, unit: "mg" },
-                vitamin_a: { value: food_info[2]?.serving[index].vitamin_a * quantity, unit: "IU" },
-                sodium: { value: food_info[2]?.serving[index].sodium * quantity, unit: "mg" },
-                calcium: { value: food_info[2]?.serving[index].calcium * quantity, unit: "mg" },
-                potassium: { value: food_info[2]?.serving[index].potassium * quantity, unit: "mg" },
-            }
-        })
-        
-        console.log(state)
-    }
+                calories: { value: food_info[2]?.serving[servingIndex].calories * quantity, unit: "kCal" },
+                protein: { value: food_info[2]?.serving[servingIndex].protein * quantity, unit: "g" },
+                fat: { value: food_info[2]?.serving[servingIndex].fat * quantity, unit: "g" },
+                carbohydrate: { value: food_info[2]?.serving[servingIndex].carbohydrate * quantity, unit: "g" },
+                saturated_fat: { value: food_info[2]?.serving[servingIndex].saturated_fat * quantity, unit: "g" },
+                unsaturated_fat: { value: food_info[2]?.serving[servingIndex].unsaturated_fat * quantity, unit: "g" },
+                trans_fat: { value: food_info[2]?.serving[servingIndex].trans_fat * quantity, unit: "g" },
+                sugar: { value: food_info[2]?.serving[servingIndex].sugar * quantity, unit: "g" },
+                fiber: { value: food_info[2]?.serving[servingIndex].fiber * quantity, unit: "g" },
+                vitamin_c: { value: food_info[2]?.serving[servingIndex].vitamin_c * quantity, unit: "mg" },
+                iron: { value: food_info[2]?.serving[servingIndex].iron * quantity, unit: "mg" },
+                vitamin_a: { value: food_info[2]?.serving[servingIndex].vitamin_a * quantity, unit: "IU" },
+                sodium: { value: food_info[2]?.serving[servingIndex].sodium * quantity, unit: "mg" },
+                calcium: { value: food_info[2]?.serving[servingIndex].calcium * quantity, unit: "mg" },
+                potassium: { value: food_info[2]?.serving[servingIndex].potassium * quantity, unit: "mg" },
+            },
+        });
+    };
 
     return (
         <SafeAreaView style={styles.mainContainer}>
@@ -203,16 +201,16 @@ export default function MacrosScreen( { route } ) {
                                     value={serving}
                                     onFocus={() => setIsFocus(true)}
                                     onBlur={() => setIsFocus(false)}
-                                    onChange={(item)=> {
-                                        index = food_info[2].serving.findIndex(
+                                    onChange={(item) => {
+                                        const newIndex = food_info[2].serving.findIndex(
                                             (serving) => serving.serving_description === item.label
-                                        )
-                                    
-                                        handleServingChange(index);
-
+                                        );
+                                        setServingIndex(newIndex); // Update the state
+                                        handleServingChange(newIndex);
                                         setServing(item.amount);
                                         setIsFocus(false);
-                                    }}/>
+                                    }}
+                                    />
                             </View>
                         </View>
                     </View>
