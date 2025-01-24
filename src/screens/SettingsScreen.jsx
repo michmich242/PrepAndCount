@@ -47,7 +47,34 @@ export default function SettingsScreen() {
           style={{ alignSelf: 'center', marginRight: 10 }}
         />
       </TouchableOpacity>
-
+      {/* Set Height and Weight */}
+      <TouchableOpacity onPress={() => navigation.navigate('Configure Height and Weight')} style={styles.setting}>
+        <Text
+          style={[styles.settingText, { color: darkModeEnabled ? '#fff' : '#333' }]}
+        >
+         Configure Height and Weight
+        </Text>
+        <Ionicons
+          name="caret-forward-outline"
+          size={25}
+          color={darkModeEnabled ? '#fff' : '#333'}
+          style={{ alignSelf: 'center', marginRight: 10 }}
+        />
+      </TouchableOpacity>
+      {/* Set Food Preferences */}
+      <TouchableOpacity onPress={() => navigation.navigate('Set Food Preferences')} style={styles.setting}>
+        <Text
+          style={[styles.settingText, { color: darkModeEnabled ? '#fff' : '#333' }]}
+        >
+         Set Food Preferences
+        </Text>
+        <Ionicons
+          name="caret-forward-outline"
+          size={25}
+          color={darkModeEnabled ? '#fff' : '#333'}
+          style={{ alignSelf: 'center', marginRight: 10 }}
+        />
+      </TouchableOpacity>
       {/* Notifications Setting */}
       <View style={[styles.setting, { backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff' }]}>
         <Text style={[styles.settingText, { color: darkModeEnabled ? "#fff" : "#333" }]}>Enable Notifications</Text>

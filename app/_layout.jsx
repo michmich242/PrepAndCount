@@ -13,11 +13,14 @@ import SettingsScreen from '../src/screens/SettingsScreen';
 import AddFoodScreen from '../src/screens/AddFoodScreen';
 import ChangeMealTimesScreen from '../src/screens/MealTimesScreen'
 import MacrosScreen from '../src/screens/MacrosScreen';
+import FoodPrefScreen from '../src/screens/FoodPrefScreen';
 import {useState} from 'react';
 
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { MealTimesContext } from '../hooks/mealTimes';
 import { MacroProvider } from '../hooks/macroContext';
+import { Settings } from 'react-native';
+import FitnessSettingsScreen from '../src/screens/FitnessSettingsScreen';
 
 
 
@@ -68,6 +71,22 @@ export default function RootLayout() {
         }} 
         name="Change Meal Times" 
         component={ChangeMealTimesScreen} 
+      />
+      <SettingsStack.Screen 
+        options={{
+          headerStyle: { backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff" }, 
+          headerTintColor: darkModeEnabled ? "#fff" : "#333"
+        }} 
+        name="Configure Height and Weight" 
+        component={FitnessSettingsScreen} 
+      />
+      <SettingsStack.Screen 
+        options={{
+          headerStyle: { backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff" }, 
+          headerTintColor: darkModeEnabled ? "#fff" : "#333"
+        }} 
+        name="Set Food Preferences" 
+        component={FoodPrefScreen} 
       />
     </SettingsStack.Navigator>
   );
