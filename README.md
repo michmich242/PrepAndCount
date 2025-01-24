@@ -1,50 +1,46 @@
-# Welcome to your Expo app 👋
+# Macro & Fitness Tracker with Meal Prepper
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Welcome to the Macro & Fitness Tracker with Meal Prepper App! This is a full-stack application built with the MERN stack (MongoDB, Express, React Native, Node.js) and powered by Expo for seamless cross-platform functionality. It aims to simplify tracking your daily macros, fitness progress, and meal preparation, providing an all-in-one tool to help you achieve your health and fitness goals.
 
-## Get started
+## Features
 
-1. Install dependencies
+- **Macro Tracking:** Easily log and track your daily intake of macronutrients (proteins, carbs, fats) and calories.
+- **Fitness Progress:** Monitor your fitness journey with weight tracking, workout logs, and goal setting.
+- **Meal Prep Planning:** Plan and organize meals for the week, with recipe suggestions and calorie calculations.
+- **Custom Goals:** Set personalized macro and fitness goals based on your individual needs.
+- **Cross-Platform Support:** Built using Expo, the app works on both Android and iOS devices.
 
+## Tech Stack
+
+### Frontend
+- **React Native**: Cross-platform mobile app development
+- **Expo**: Framework and platform for universal React applications
+
+### Backend
+- **Node.js**: Backend runtime environment
+- **Express**: Web application framework for APIs
+
+### Database
+- **MongoDB**: NoSQL database for storing user data and app content
+
+### Additional Tools
+- **Mongoose**: Object Data Modeling (ODM) library for MongoDB
+- **JWT**: JSON Web Tokens for user authentication
+- **Redux**: State management for efficient app-wide data handling
+
+## Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-username/macro-fitness-tracker.git
+
+2. Install all dependencies:
    ```bash
    npm install
-   ```
 
-2. Start the app
-
+3. Run the application:
    ```bash
-    npx expo start
-   ```
+   npm start
 
-In the output, you'll find options to open the app in a
+**Disclaimer**: Android SDK or Xcode is needed for the phone to pop up
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
