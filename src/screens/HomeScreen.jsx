@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffec } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,12 @@ import { PieChart } from 'react-native-chart-kit';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { DMContext } from '../../app/_layout';
 import { useMacros } from '../../hooks/macroContext';
+import API_URL from "../config/api";
+
+
+
+
+import * as SecureStore from "expo-secure-store";
 
 const screenWidth = Dimensions.get('window').width;
 const MEAL_TYPES = ['Breakfast', 'Lunch', 'Dinner'];
@@ -26,6 +32,45 @@ export default function HomeScreen() {
   const [mealText, setMealText] = useState('');
   const [mealType, setMealType] = useState(MEAL_TYPES[0]);
   const { state, dispatch } = useMacros();
+  const [user, setUser] = useState(null);
+
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+        const token = await SecureStore.getItemAsync("token");
+
+        if (!token) {
+            navigation.replace("LoginScreen");
+            return;
+        }
+
+        const response = await fetch(`${API_URL}/profile`, {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            setUser(data);
+        } else {
+            SecureStore.deleteItemAsync("token");
+            navigation.replace("LoginScreen");
+        }
+    };
+
+    fetchUserProfile();
+}, [navigation]);
+
+const logoutUser = async () => {
+    await SecureStore.deleteItemAsync("token");
+    navigation.replace("LoginScreen");
+};
+
+
+
 
   const theme = {
     background: darkModeEnabled ? '#1c1b1a' : '#fff',
