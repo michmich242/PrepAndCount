@@ -15,20 +15,20 @@ import { useNavigation } from 'expo-router';
 import { Dropdown } from 'react-native-element-dropdown';
 import { useMacros } from '../../hooks/macroContext.js';
 
-export default function MacrosScreen( { route } ) {
+export default function MacrosScreen({ route }) {
     const { state, dispatch } = useMacros();
 
     const food_info = route.params.food_info; // first index holds name, second index holds brand name, third index holds serving array
-    let { protein, 
-        fat, 
-        carbohydrate, 
-        fiber, 
+    let { protein,
+        fat,
+        carbohydrate,
+        fiber,
     } = route.params;
 
     let net_carb = carbohydrate
 
-    
-    if(fiber){
+
+    if (fiber) {
         net_carb -= fiber;
     }
 
@@ -36,9 +36,10 @@ export default function MacrosScreen( { route } ) {
     fat = Math.round(fat);
     net_carb = Math.round(net_carb);
 
-    const protein_percentage = Math.round((100 * (protein/(protein + fat + net_carb))));
-    const fat_percentage = Math.round((100 * (fat/(protein + fat + net_carb))));
-    const net_carb_percentage = Math.round((100 * (net_carb/(protein + fat + net_carb))))
+
+    const protein_percentage = Math.round((100 * (protein / (protein + fat + net_carb))));
+    const fat_percentage = Math.round((100 * (fat / (protein + fat + net_carb))));
+    const net_carb_percentage = Math.round((100 * (net_carb / (protein + fat + net_carb))))
 
 
 
@@ -49,17 +50,17 @@ export default function MacrosScreen( { route } ) {
 
     let servingOptions = food_info[2].serving.map((item) => ({
         label: item.serving_description,
-        amount: item.metric_serving_amount    
+        amount: item.metric_serving_amount
     }));
 
     const [quantity, setQuantity] = useState(1);
-    const[totalCalories, setTotalCalories] = useState(food_info[2].serving[0].calories);
-    const[macros, setMacros] = useState([
+    const [totalCalories, setTotalCalories] = useState(food_info[2].serving[0].calories);
+    const [macros, setMacros] = useState([
         { value: -1, color: '#fbd203' },
         { value: -1, color: '#ffb300' },
         { value: -1, color: '#ff9100' },
     ]);
-    
+
     const [nutrition, setNutrition] = useState([
         { label: "Protein", value: food_info[2]?.serving[0].protein, unit: "g" },
         { label: "Fat", value: food_info[2]?.serving[0].fat, unit: "g" },
@@ -68,8 +69,8 @@ export default function MacrosScreen( { route } ) {
         { label: "Unsaturated Fat", value: food_info[2]?.serving[0].unsaturated_fat, unit: "g" },
         { label: "Trans Fat", value: food_info[2]?.serving[0].trans_fat, unit: "g" },
         { label: "Sugar", value: food_info[2]?.serving[0].sugar, unit: "g" },
-        { label: "Fiber", value: food_info[2]?.serving[0].fiber, unit: 'g'},
-        { label: "Vitamin C", value: food_info[2]?.serving[0].vitamin_c, unit: 'mg'},
+        { label: "Fiber", value: food_info[2]?.serving[0].fiber, unit: 'g' },
+        { label: "Vitamin C", value: food_info[2]?.serving[0].vitamin_c, unit: 'mg' },
         { label: "Iron", value: food_info[2]?.serving[0].iron, unit: 'mg' },
         { label: "Vitamin A", value: food_info[2]?.serving[0].vitamin_a, unit: 'IU' },
         { label: "Sodium (mg)", value: food_info[2]?.serving[0].sodium, unit: 'mg' },
@@ -77,24 +78,24 @@ export default function MacrosScreen( { route } ) {
         { label: "Potassium", value: food_info[2]?.serving[0].potassium, unit: 'mg' }
     ]);
 
-    
 
 
 
 
-    const[serving, setServing] = useState(servingOptions[0]);
+
+    const [serving, setServing] = useState(servingOptions[0]);
     const [isFocus, setIsFocus] = useState(false);
     const [darkModeEnabled] = useContext(DMContext);
     const [servingIndex, setServingIndex] = useState(0);
 
-    
+
     const handleGoBack = () => {
         navigation.goBack();
     };
 
 
 
-    function handleServingChange(index){
+    function handleServingChange(index) {
         //update energy summary
         setMacros([
             { value: food_info[2].serving[index].protein, color: '#fbd203' },
@@ -124,7 +125,7 @@ export default function MacrosScreen( { route } ) {
 
     }
 
-    
+
     const handleAddItem = () => {
         dispatch({
             type: 'ADD_ITEM',
@@ -149,8 +150,8 @@ export default function MacrosScreen( { route } ) {
     };
 
     return (
-        <SafeAreaView style={styles.mainContainer}>
-            <ScrollView 
+        <SafeAreaView style={[styles.mainContainer, { backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff' }]}>
+            <ScrollView
                 style={styles.scrollView}
                 contentContainerStyle={styles.scrollContentContainer}
                 showsVerticalScrollIndicator={false}
@@ -158,27 +159,27 @@ export default function MacrosScreen( { route } ) {
                 <View style={styles.contentContainer}>
                     {/* General Info Section */}
                     <View style={styles.section}>
-                        <Text style={styles.sectionHeader}>General Information</Text>
-                        <View style={styles.card}>
+                        <Text style={[styles.sectionHeader, { color: darkModeEnabled ? '#fff' : '##1c1b1a' }]}>General Information</Text>
+                        <View style={[styles.card, { backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff' }, { shadowColor: darkModeEnabled ? '#fff' : '#1c1b1a' }]}>
                             <View style={styles.infoRow}>
-                                <Text style={styles.label}>{food_info[0]} ({(food_info[1] != null ? food_info[1] : "Generic")})</Text>
+                                <Text style={[styles.label, { color: darkModeEnabled ? '#cacccf' : '#666' }]}>{food_info[0]} ({(food_info[1] != null ? food_info[1] : "Generic")})</Text>
                             </View>
                             <View style={styles.separator} />
                             <View style={styles.infoRow}>
-                                <Text style={styles.label}>Amount</Text>
-                                <TextInput 
-                                    style={styles.input}
+                                <Text style={[styles.label, { color: darkModeEnabled ? '#fff' : '#1c1b1a' }]}>Amount</Text>
+                                <TextInput
+                                    style={[styles.input, { backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff' }, { color: darkModeEnabled ? '#fff' : '#1c1b1a' }]}
                                     placeholder="Enter amount"
                                     placeholderTextColor="#999"
                                     keyboardType="numeric"
-                                    onChangeText={ (the_amount) =>{
-                                        if(the_amount === ''){
-                                           setQuantity(1); 
+                                    onChangeText={(the_amount) => {
+                                        if (the_amount === '') {
+                                            setQuantity(1);
                                         }
-                                        else{
+                                        else {
                                             setQuantity(the_amount)
                                         }
-                                        }
+                                    }
                                     }
 
 
@@ -186,13 +187,36 @@ export default function MacrosScreen( { route } ) {
                             </View>
                             <View style={styles.separator} />
                             <View style={styles.infoRow}>
-                                <Text style={styles.label}>Serving</Text>
+                                <Text style={[styles.label, { color: darkModeEnabled ? '#fff' : '#1c1b1a' }]}>Serving</Text>
                                 <Dropdown
-                                    style={[styles.input, isFocus && { borderColor: 'blue' }]}
-                                    placeholderStyle={styles.placeholderStyle}
-                                    selectedTextStyle={styles.selectedTextStyle}
-                                    inputSearchStyle={styles.inputSearchStyle}
-                                    iconStyle={styles.iconStyle}
+                                    style={[
+                                        styles.input,
+                                        { backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff' },
+                                        isFocus && { borderColor: darkModeEnabled ? '#fff' : '#1c1b1a' },
+                                    ]}
+                                    placeholderStyle={[
+                                        styles.placeholderStyle,
+                                        { color: darkModeEnabled ? '#888' : '#333' },
+                                    ]}
+                                    selectedTextStyle={[
+                                        styles.selectedTextStyle,
+                                        { color: darkModeEnabled ? '#fff' : '#000' },
+                                    ]}
+                                    inputSearchStyle={[
+                                        styles.inputSearchStyle,
+                                        { backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff', color: darkModeEnabled ? '#fff' : '#000' },
+                                    ]}
+                                    renderItem={(item) => (
+                                        <View
+                                            style={{
+                                                backgroundColor: darkModeEnabled ? '#444' : '#f9f9f9', 
+                                                padding: 10, 
+                                                borderBottomWidth: 1,
+                                                borderBottomColor: darkModeEnabled ? '#555' : '#ddd', 
+                                            }}>
+                                            <Text style={{color: darkModeEnabled ? '#fff' : '#000',}}>{item.label}</Text>
+                                        </View>
+                                    )}
                                     data={servingOptions}
                                     maxHeight={300}
                                     labelField="label"
@@ -210,36 +234,36 @@ export default function MacrosScreen( { route } ) {
                                         setServing(item.amount);
                                         setIsFocus(false);
                                     }}
-                                    />
+                                />
                             </View>
                         </View>
                     </View>
 
                     {/* Macros Section */}
                     <View style={styles.section}>
-                        <Text style={styles.sectionHeader}>Macros</Text>
-                        <View style={styles.card}>
-                            <Text style={styles.cardTitle}>Energy Summary</Text>
+                        <Text style={[styles.sectionHeader, { color: darkModeEnabled ? '#fff' : '#1c1b1a' }]}>Macros</Text>
+                        <View style={[styles.card, {shadowColor: darkModeEnabled ? '#fff' : '1c1b1a'}, {backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff'}]}>
+                            <Text style={[styles.cardTitle, {color: darkModeEnabled ? '#fff' : '#1c1b1a'}]}>Energy Summary</Text>
                             <View style={styles.chartContainer}>
                                 <View style={styles.legendContainer}>
-                                    <Text style={[styles.legendText, { color: '#fbd203' }]}>Protein ({quantity * (Math.trunc(macros[0].value) !== -1 ? Math.trunc(macros[0].value) : protein)}g) - {protein_percentage}%</Text>
-                                    <Text style={[styles.legendText, { color: '#ffb300' }]}>Fat ({quantity * (Math.trunc(macros[1].value) !== -1 ? Math.trunc(macros[1].value) : fat)}g) - {fat_percentage}%</Text>
-                                    <Text style={[styles.legendText, { color: '#ff9100' }]}>Net Carbs ({quantity * (Math.trunc(macros[2].value) !== -1 ? Math.trunc(macros[2].value) : net_carb)}g) - {net_carb_percentage}%</Text>
+                                    <Text style={[styles.legendText, { color: '#fbd203' }]}>Protein ({quantity * (Math.trunc(macros[0].value) !== -1 ? Math.trunc(macros[0].value) : protein)}g) - {protein_percentage || 0}%</Text>
+                                    <Text style={[styles.legendText, { color: '#ffb300' }]}>Fat ({quantity * (Math.trunc(macros[1].value) !== -1 ? Math.trunc(macros[1].value) : fat)}g) - {fat_percentage || 0}%</Text>
+                                    <Text style={[styles.legendText, { color: '#ff9100' }]}>Net Carbs ({quantity * (Math.trunc(macros[2].value) !== -1 ? Math.trunc(macros[2].value) : net_carb)}g) - {net_carb_percentage || 0}%</Text>
                                 </View>
-                                
+
                                 <View style={styles.pieContainer}>
 
-                                    <PieChart 
-                                        widthAndHeight={widthAndHeight} 
+                                    <PieChart
+                                        widthAndHeight={widthAndHeight}
                                         series={[
-                                            { value: protein, color: "#fbd203" }, // Protein
-                                            { value: fat, color: "#ffb300" }, // Fat
-                                            { value: net_carb, color: "#ff9100" }, // Carbs
-                                        ]} 
+                                            { value: protein <= 0 ? 1 : protein, color: "#fbd203" }, // Protein
+                                            { value: fat <= 0 ? 1 : fat, color: "#ffb300" }, // Fat
+                                            { value: net_carb <= 0 ? 1 : net_carb, color: "#ff9100" }, // Carbs
+                                        ]}
                                         cover={0.6}
                                     />
                                     <View style={styles.chartOverlay}>
-                                        <Text style={styles.overlayText}>{quantity * totalCalories}</Text>
+                                        <Text style={[styles.overlayText, {color: darkModeEnabled ? '#fff' : '#1c1b1a'}]}>{quantity * totalCalories}</Text>
                                         <Text style={styles.overlaySubText}>kCal</Text>
                                     </View>
                                 </View>
@@ -247,15 +271,15 @@ export default function MacrosScreen( { route } ) {
                         </View>
 
                         {/* Nutrition Facts Card */}
-                        <View style={styles.card}>
-                            <Text style={styles.cardTitle}>Nutrition Facts</Text>
+                        <View style={[styles.card, {backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff'}, {shadowColor: darkModeEnabled ? '#fff' : '#1c1b1a'}]}>
+                            <Text style={[styles.cardTitle, {color: darkModeEnabled ? '#fff' : '#1c1b1a'}]}>Nutrition Facts</Text>
                             <View style={styles.nutritionFactsContainer}>
                                 {nutrition.map((item, index) => (
                                     item.value != null && //only output valid nutrition facts
 
                                     <View key={index} style={styles.nutritionRow}>
-                                        <Text style={styles.nutritionLabel}>{item.label}</Text>
-                                        <Text style={styles.nutritionValue}>{(item.value * quantity) + " " + item.unit} </Text>
+                                        <Text style={[styles.nutritionLabel, {color: darkModeEnabled ? '#fff' : '#1c1b1a'}]}>{item.label}</Text>
+                                        <Text style={[styles.nutritionValue, {color: darkModeEnabled ? '#fff' : '#1c1b1a'}]}>{(item.value * quantity) + " " + item.unit} </Text>
                                     </View>
                                 ))}
                             </View>
@@ -265,12 +289,11 @@ export default function MacrosScreen( { route } ) {
             </ScrollView>
 
             {/* Add Button */}
-            <View style={styles.buttonContainer}>
-                <TouchableOpacity style={styles.addButton} onPress={ () => 
-                    {
-                        handleAddItem(index);
-                        handleGoBack();
-                    }
+            <View style={[styles.buttonContainer, {backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff'}]}>
+                <TouchableOpacity style={styles.addButton} onPress={() => {
+                    handleAddItem(index);
+                    handleGoBack();
+                }
                 }>
                     <Text style={styles.addButtonText}>Add</Text>
                 </TouchableOpacity>
@@ -424,5 +447,5 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#666',
     },
-    
+
 });
