@@ -37,9 +37,9 @@ export default function MacrosScreen({ route }) {
     net_carb = Math.round(net_carb);
 
 
-    const protein_percentage = Math.round((100 * (protein / (protein + fat + net_carb))));
-    const fat_percentage = Math.round((100 * (fat / (protein + fat + net_carb))));
-    const net_carb_percentage = Math.round((100 * (net_carb / (protein + fat + net_carb))))
+    const protein_percentage = parseFloat((100 * (protein / (protein + fat + net_carb))).toFixed(2));
+    const fat_percentage = parseFloat((100 * (fat / (protein + fat + net_carb))).toFixed(2));
+    const net_carb_percentage = parseFloat((100 * (net_carb / (protein + fat + net_carb))).toFixed(2));
 
 
 
@@ -246,9 +246,9 @@ export default function MacrosScreen({ route }) {
                             <Text style={[styles.cardTitle, {color: darkModeEnabled ? '#fff' : '#1c1b1a'}]}>Energy Summary</Text>
                             <View style={styles.chartContainer}>
                                 <View style={styles.legendContainer}>
-                                    <Text style={[styles.legendText, { color: '#fbd203' }]}>Protein ({quantity * (Math.trunc(macros[0].value) !== -1 ? Math.trunc(macros[0].value) : protein)}g) - {protein_percentage || 0}%</Text>
-                                    <Text style={[styles.legendText, { color: '#ffb300' }]}>Fat ({quantity * (Math.trunc(macros[1].value) !== -1 ? Math.trunc(macros[1].value) : fat)}g) - {fat_percentage || 0}%</Text>
-                                    <Text style={[styles.legendText, { color: '#ff9100' }]}>Net Carbs ({quantity * (Math.trunc(macros[2].value) !== -1 ? Math.trunc(macros[2].value) : net_carb)}g) - {net_carb_percentage || 0}%</Text>
+                                    <Text style={[styles.legendText, { color: '#fbd203' }]}>Protein ({(quantity * (macros[0].value !== -1 ? macros[0].value : protein)).toFixed(2)}g) - {protein > 0 ? protein_percentage?.toFixed(2) : 0}%</Text>
+                                    <Text style={[styles.legendText, { color: '#ffb300' }]}>Fat ({(quantity * (macros[1].value !== -1 ? macros[1].value : fat)).toFixed(2)}g) - {fat > 0 ? fat_percentage?.toFixed(2) : 0}%</Text>
+                                    <Text style={[styles.legendText, { color: '#ff9100' }]}>Net Carbs ({(quantity * (macros[2].value !== -1 ? macros[2].value : net_carb)).toFixed(2)}g) - {net_carb > 0 ? net_carb_percentage?.toFixed(2) : 0}%</Text>
                                 </View>
 
                                 <View style={styles.pieContainer}>

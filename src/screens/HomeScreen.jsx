@@ -119,29 +119,25 @@ export default function HomeScreen() {
                 data={[
                   {
                     name: `Protein ${state.protein.value}g`,
-                    population: state.protein.value,
+                    population: (state.protein.value <= 0 && state.fat.value <= 0 && state.carbohydrate.value - state.fiber.value <= 0) ? 0.1 : state.protein.value,
                     color: '#fbd203',
-                    legendFontColor: theme.text,
                   },
                   {
                     name: `Fat ${state.fat.value}g`,
-                    population: state.fat.value,
+                    population: (state.protein.value <= 0 && state.fat.value <= 0 && state.carbohydrate.value - state.fiber.value <= 0) ? 0.1 : state.fat.value,
                     color: '#ffb300',
-                    legendFontColor: theme.text,
+
                   },
                   {
                     name: `Net Carbs ${state.carbohydrate.value - state.fiber.value}g`,
-                    population: state.carbohydrate.value - state.fiber.value,
+                    population: (state.protein.value <= 0 && state.fat.value <= 0 && state.carbohydrate.value - state.fiber.value <= 0) ? 0.1 : state.carbohydrate.value - state.fiber.value,
                     color: '#ff9100',
-                    legendFontColor: theme.text,
                   }
                 ]}
                 width={500}
                 height={200}
                 chartConfig={{
-                  color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-                  backgroundGradientFrom: '#1E2923',
-                  backgroundGradientTo: '#08130D',
+                  color: (opacity = 1) => darkModeEnabled ? '#1c1b1a' : '#fff',
                   strokeWidth: 2, 
                   barPercentage: 0.5,
                   propsForLabels: {
@@ -155,8 +151,8 @@ export default function HomeScreen() {
                 center={[screenWidth / 4, 0]}
               />
               </View>
-              <View style={styles.calorieContainer}>
-                <Text style={[styles.calorieValue, { color: theme.text }]}>
+              <View style={[styles.calorieContainer, {backgroundColor: darkModeEnabled ? '#2c2c2c' : '#fff'}]}>
+                <Text style={[styles.calorieValue, { color: darkModeEnabled ? '#fff' : '#1c1b1a'}]}>
                   {state.calories.value}
                 </Text>
                 <Text style={[styles.calorieUnit, { color: theme.text }]}>

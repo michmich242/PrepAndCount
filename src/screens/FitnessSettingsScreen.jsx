@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { useContext, useEffect } from 'react';
+import { DMContext } from "../../app/_layout";
 
 export default function FitnessSettingsScreen(){
   const [height, setHeight] = useState("");
   const [weight, setWeight] = useState("");
   const [fitnessGoal, setFitnessGoal] = useState("");
+  const [darkModeEnabled] = useContext(DMContext);
 
   const handleSubmit = () => {
     if (!height || !weight || !fitnessGoal) {
@@ -17,31 +20,34 @@ export default function FitnessSettingsScreen(){
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Fitness Settings</Text>
+    <View style={[styles.container, {backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff'}]}>
+      <Text style={[styles.title, {color: darkModeEnabled ? '#fff' : '#1c1b1a'}]}>Fitness Settings</Text>
 
-      <Text style={styles.label}>Height (cm):</Text>
+      <Text style={[styles.label, {color: darkModeEnabled ? '#fff' : '#1c1b1a'}]}>Height (cm):</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, {backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff'}, {color: darkModeEnabled ? '#fff' : '#1c1b1a'}]}
         keyboardType="numeric"
         placeholder="Enter your height"
+        placeholderTextColor={darkModeEnabled ? '#fff' : '#1c1b1a'}
         value={height}
         onChangeText={setHeight}
       />
 
-      <Text style={styles.label}>Weight (lbs):</Text>
+      <Text style={[styles.label, {color: darkModeEnabled ? '#fff' : '#1c1b1a'}]}>Weight (lbs):</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, {backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff'}, {color: darkModeEnabled ? '#fff' : '#1c1b1a'}]}
         keyboardType="numeric"
         placeholder="Enter your weight"
+        placeholderTextColor={darkModeEnabled ? '#fff' : '#1c1b1a'}
         value={weight}
         onChangeText={setWeight}
       />
 
-      <Text style={styles.label}>Fitness Goal:</Text>
+      <Text style={[styles.label, {color: darkModeEnabled ? '#fff' : '#1c1b1a'}]}>Fitness Goal:</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, {backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff'}, {color: darkModeEnabled ? '#fff' : '#1c1b1a'}]}
         placeholder="e.g., Lose weight, Build muscle"
+        placeholderTextColor={darkModeEnabled ? '#fff' : '#1c1b1a'}
         value={fitnessGoal}
         onChangeText={setFitnessGoal}
       />

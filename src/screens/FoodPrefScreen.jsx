@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from "react-native";
+import { DMContext } from "../../app/_layout";
+import { useContext, useEffect } from 'react';
 
 export default function FoodPrefScreen(){
   const [likes, setLikes] = useState("");
   const [dislikes, setDislikes] = useState("");
   const [allergens, setAllergens] = useState("");
   const [dietaryRestrictions, setDietaryRestrictions] = useState("");
+  const [darkModeEnabled] = useContext(DMContext);
 
   const handleSubmit = () => {
     if (!likes || !dislikes || !allergens || !dietaryRestrictions) {
@@ -21,37 +24,41 @@ export default function FoodPrefScreen(){
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Food Preferences</Text>
+    <ScrollView contentContainerStyle={[styles.container, {backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff'}]}>
+      <Text style={[styles.title, {color: darkModeEnabled ? '#fff' : '#1c1b1a'}]}>Food Preferences</Text>
 
-      <Text style={styles.label}>Likes:</Text>
+      <Text style={[styles.label, {color: darkModeEnabled ? '#fff' : '#1c1b1a'}]}>Likes:</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, {backgroundColor: darkModeEnabled ? '#1c1b1a' : "#fff"}, {color: darkModeEnabled ? '#fff' : '#1c1b1a'}]}
         placeholder="E.g., Fruits, Vegetables"
+        placeholderTextColor={darkModeEnabled ? '#fff' : '#1c1b1a'}
         value={likes}
         onChangeText={setLikes}
       />
 
-      <Text style={styles.label}>Dislikes:</Text>
+      <Text style={[styles.label, {color: darkModeEnabled ? '#fff' : '#1c1b1a'}]}>Dislikes:</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, {backgroundColor: darkModeEnabled ? '#1c1b1a' : "#fff"}, {color: darkModeEnabled ? '#fff' : '#1c1b1a'}]}
         placeholder="E.g., Spicy food, Mushrooms"
+        placeholderTextColor={darkModeEnabled ? '#fff' : '#1c1b1a'}
         value={dislikes}
         onChangeText={setDislikes}
       />
 
-      <Text style={styles.label}>Allergens:</Text>
+      <Text style={[styles.label, {color: darkModeEnabled ? '#fff' : '#1c1b1a'}]}>Allergens:</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, {backgroundColor: darkModeEnabled ? '#1c1b1a' : "#fff"}, {color: darkModeEnabled ? '#fff' : '#1c1b1a'}]}
         placeholder="E.g., Peanuts, Gluten"
+        placeholderTextColor={darkModeEnabled ? '#fff' : '#1c1b1a'}
         value={allergens}
         onChangeText={setAllergens}
       />
 
-      <Text style={styles.label}>Dietary Restrictions:</Text>
+      <Text style={[styles.label, {color: darkModeEnabled ? '#fff' : '#1c1b1a'}]}>Dietary Restrictions:</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, {backgroundColor: darkModeEnabled ? '#1c1b1a' : "#fff"}, {color: darkModeEnabled ? '#fff' : '#1c1b1a'}]}
         placeholder="E.g., Vegan, Halal"
+        placeholderTextColor={darkModeEnabled ? '#fff' : '#1c1b1a'}
         value={dietaryRestrictions}
         onChangeText={setDietaryRestrictions}
       />
