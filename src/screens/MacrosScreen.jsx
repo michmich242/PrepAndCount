@@ -126,7 +126,7 @@ export default function MacrosScreen({ route }) {
     }
 
 
-    const handleAddItem = () => {
+    const handleAddItem = () => { // Dispatch sends info to home screen to update pi chart
         dispatch({
             type: 'ADD_ITEM',
             payload: {
