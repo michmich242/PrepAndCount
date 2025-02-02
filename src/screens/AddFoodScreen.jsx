@@ -17,22 +17,10 @@ import { useNavigation } from '@react-navigation/native';
 
 
 export default function AddFoodScreen() {
+  let page_number = 1;
   const [foodSuggestions, setFoodSuggestions] = useState([]);
-
-/*
-  const [foodItems, setFoodItems] = useState([{
-    food_id: 59586,
-    food_name: "none",
-    brand_name: "none",
-    food_type: "none",
-    food_url: "none",
-    servings:{
-      serving: []
-    }
-  }]);
-  */
-
-const[foodItems, setFoodItems] = useState([]);
+  const [maxResults, setMaxResults] = useState(0);
+  const[foodItems, setFoodItems] = useState([]);
 
   const [darkModeEnabled, setDarkModeEnabled] = useContext(DMContext);
   const [isSuggesting, setSuggesting] = useState(true);
@@ -60,11 +48,14 @@ const[foodItems, setFoodItems] = useState([]);
 
 
  //fetch food for food list
- const handleFetchingFood = (suggestion) => {
+ const handleFetchingFood = (suggestion, page_number) => {
     async function fetchFoodItems(){
       try{
-        const food = await callSearch(suggestion);
-        
+        const [food, new_max_results] = await callSearch(suggestion, page_number);
+
+        if(new_max_results != maxResults){
+          setMaxResults(new_max_results);
+        }
 
         const foodNames = food.food.map((item) => ({
             food_id: item.food_id,
@@ -82,12 +73,13 @@ const[foodItems, setFoodItems] = useState([]);
 
     fetchFoodItems();
   }
-
+  
   //Search for clicked suggestion, clear suggestions
   const handleSuggestionClick = (suggestion) => {
+    page_number = 1;
     setSearchText(suggestion);
     setFoodSuggestions([]);
-    handleFetchingFood(suggestion);
+    handleFetchingFood(suggestion, page_number);
   }
 
   const handleAddFood = (item) => {
@@ -100,6 +92,15 @@ const[foodItems, setFoodItems] = useState([]);
     setSelectedItems(selectedItems.filter((item) => item.food_id !== itemId));
   };
 
+  const handleNextClick = (suggestion, page_number) => {
+    page_number++;
+    handleFetchingFood(suggestion, page_number)
+  }
+
+  const handlePrevClick = (suggestion, page_number) => {
+    page_number--;
+    handleFetchingFood(suggestion, page_number);
+  }
   
   //grab food info from API call for specific food id, go to macros screen and send info
   async function handleMacroNav(food_id) {
@@ -183,6 +184,16 @@ const[foodItems, setFoodItems] = useState([]);
           <Text style={styles.emptyListText}>No food items found.</Text>
         }
       />}
+
+      {/* Next and Prev Buttons */}
+      {
+        (page_number < (maxResults/5)) && 
+        <View style={styles.changePageButtonContainer}>
+          <TouchableOpacity>
+            <Text style={styles.changePageButto}>Next</Text>
+          </TouchableOpacity>
+        </View>
+      }
 
       {/* Selected Food Items */}
       <Text style={[styles.selectedHeader, {color: darkModeEnabled ? "#fff" : "#333"}]}>Selected Food</Text>
@@ -312,4 +323,25 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ddd",
     borderRadius: 2,
   },
+  changePageButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 5,
+  },
+  changePageButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '18%',
+    padding: 15,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    marginBottom: 10,
+    marginTop: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 2,
+  }
 });
