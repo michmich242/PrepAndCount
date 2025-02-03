@@ -7,12 +7,12 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import { callFindByID } from '../../callAPI.js';
+import { callFindByID } from '../../api/callAPI.js';
 import { DMContext } from '../../app/_layout'
 import { useContext } from "react"
-import { callAutoComplete } from '../../callAPI.js';
-import { callSearch } from '../../callAPI.js';
-import MacrosScreen from './MacrosScreen';
+import { callAutoComplete } from '../../api/callAPI.js';
+import { callSearch } from '../../api/callAPI.js';
+import MacrosScreen from './MacrosScreen.jsx';
 import { useNavigation } from '@react-navigation/native';
 
 

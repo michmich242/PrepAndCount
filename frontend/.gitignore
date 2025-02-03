@@ -38,5 +38,4 @@ yarn-error.*
 app-example
 
 #API
-callAPI.js 
-accessToken.js
+api/
