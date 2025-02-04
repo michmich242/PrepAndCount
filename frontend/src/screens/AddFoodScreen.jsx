@@ -17,7 +17,7 @@ import { useNavigation } from '@react-navigation/native';
 
 
 export default function AddFoodScreen() {
-  let page_number = 1;
+  const [pageNumber, setPageNumber] = useState(0);
   const [foodSuggestions, setFoodSuggestions] = useState([]);
   const [maxResults, setMaxResults] = useState(0);
   const[foodItems, setFoodItems] = useState([]);
@@ -48,10 +48,10 @@ export default function AddFoodScreen() {
 
 
  //fetch food for food list
- const handleFetchingFood = (suggestion, page_number) => {
+ const handleFetchingFood = (suggestion, pageNumber) => {
     async function fetchFoodItems(){
       try{
-        const [food, new_max_results] = await callSearch(suggestion, page_number);
+        const [food, new_max_results] = await callSearch(suggestion, pageNumber);
 
         if(new_max_results != maxResults){
           setMaxResults(new_max_results);
@@ -76,10 +76,10 @@ export default function AddFoodScreen() {
   
   //Search for clicked suggestion, clear suggestions
   const handleSuggestionClick = (suggestion) => {
-    page_number = 1;
+   if(pageNumber != 0) setPageNumber(0);
     setSearchText(suggestion);
     setFoodSuggestions([]);
-    handleFetchingFood(suggestion, page_number);
+    handleFetchingFood(suggestion, pageNumber);
   }
 
   const handleAddFood = (item) => {
@@ -92,14 +92,14 @@ export default function AddFoodScreen() {
     setSelectedItems(selectedItems.filter((item) => item.food_id !== itemId));
   };
 
-  const handleNextClick = (suggestion, page_number) => {
-    page_number++;
-    handleFetchingFood(suggestion, page_number)
+  const handleNextClick = () => {
+    setPageNumber(pageNumber + 1);
+    handleFetchingFood(searchText, pageNumber + 1)
   }
 
-  const handlePrevClick = (suggestion, page_number) => {
-    page_number--;
-    handleFetchingFood(suggestion, page_number);
+  const handlePrevClick = () => {
+    setPageNumber(pageNumber - 1);
+    handleFetchingFood(searchText, pageNumber - 1);
   }
   
   //grab food info from API call for specific food id, go to macros screen and send info
@@ -156,7 +156,7 @@ export default function AddFoodScreen() {
           data={foodSuggestions}
           keyExtractor={(index) => index.toString()}
           renderItem={({ item }) => (
-            <TouchableOpacity onPress={() => {handleSuggestionClick(item); setSuggesting(false);}}>
+            <TouchableOpacity onPress={() => {handleSuggestionClick(item); setSuggesting(false); setSearchText(item)}}>
               <Text style={[styles.suggestionItem, {color: darkModeEnabled ? "#fff" : "#333"}]}>{item}</Text>
             </TouchableOpacity>
           )}
@@ -186,14 +186,23 @@ export default function AddFoodScreen() {
       />}
 
       {/* Next and Prev Buttons */}
-      {
-        (page_number < (maxResults/5)) && 
-        <View style={styles.changePageButtonContainer}>
-          <TouchableOpacity>
-            <Text style={styles.changePageButto}>Next</Text>
+      
+          <View style={[styles.changePageButtonContainer,{ justifyContent: (pageNumber > 0 ) ? "space-between" : "flex-end"}]}>
+            {pageNumber > 0 && 
+            <TouchableOpacity
+            onPress={() => handlePrevClick()}>
+              <Text>Prev</Text>
+            </TouchableOpacity>
+            }
+          {
+          (pageNumber < (maxResults-5/5)) && 
+          <TouchableOpacity
+          onPress={() => handleNextClick()}>
+            <Text>Next</Text>
           </TouchableOpacity>
-        </View>
-      }
+          }
+          </View>
+
 
       {/* Selected Food Items */}
       <Text style={[styles.selectedHeader, {color: darkModeEnabled ? "#fff" : "#333"}]}>Selected Food</Text>
@@ -325,7 +334,7 @@ const styles = StyleSheet.create({
   },
   changePageButtonContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     width: '100%',
     marginTop: 5,
   },
