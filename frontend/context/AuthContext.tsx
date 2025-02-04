@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await AsyncStorage.removeItem('userToken');
       setIsAuthenticated(false);
-      router.replace('/');
+      router.replace('/(auth)');
     } catch (error) {
       console.error('Error during logout:', error);
       throw error;
@@ -57,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await AsyncStorage.removeItem('userToken');
       setIsAuthenticated(false);
-      router.replace('/');
+      router.replace('/(auth)');
     } catch (error) {
       console.error('Error during sign out:', error);
       throw error;

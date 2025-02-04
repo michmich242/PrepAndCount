@@ -1,4 +1,4 @@
-import { Stack, Slot } from 'expo-router';
+import { Stack } from 'expo-router';
 import { useEffect, useState, createContext } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -23,16 +23,13 @@ function RootLayoutNav() {
       <MacroProvider>
         <MealTimesContext.Provider value={{ mealTimes, setMealTimes }}>
           <StatusBar style={darkModeEnabled ? "light" : "dark"} />
-          {!isAuthenticated ? (
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="index" />
-              <Stack.Screen name="register" />
-            </Stack>
-          ) : (
-            <Stack screenOptions={{ headerShown: false }}>
+          <Stack screenOptions={{ headerShown: false }}>
+            {!isAuthenticated ? (
+              <Stack.Screen name="(auth)" />
+            ) : (
               <Stack.Screen name="(tabs)" />
-            </Stack>
-          )}
+            )}
+          </Stack>
         </MealTimesContext.Provider>
       </MacroProvider>
     </DMContext.Provider>
