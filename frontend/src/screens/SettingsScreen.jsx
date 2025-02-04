@@ -4,14 +4,14 @@ import { StatusBar } from 'expo-status-bar';
 import { DMContext } from '../../app/_layout';
 import { useContext } from "react";
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { router } from 'expo-router';
 import { useMacros } from '../../hooks/macroContext';
+import SignOutButton from '../components/SignOutButton';
 
 export default function SettingsScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [darkModeEnabled, setDarkModeEnabled] = useContext(DMContext);
-  const navigation = useNavigation();
-  const { state, dispatch } = useMacros();
+  const { dispatch } = useMacros();
 
   const toggleNotifications = () =>
     setNotificationsEnabled((prevState) => !prevState);
@@ -34,10 +34,8 @@ export default function SettingsScreen() {
       <Text style={[styles.header, { color: darkModeEnabled ? '#fff' : '#333' }]}>Settings</Text>
       
       {/* Set Meal Times */}
-      <TouchableOpacity onPress={() => navigation.navigate('Change Meal Times')} style={styles.setting}>
-        <Text
-          style={[styles.settingText, { color: darkModeEnabled ? '#fff' : '#333' }]}
-        >
+      <TouchableOpacity onPress={() => router.push('/change-meal-times')} style={styles.setting}>
+        <Text style={[styles.settingText, { color: darkModeEnabled ? '#fff' : '#333' }]}>
           Set Meal Times
         </Text>
         <Ionicons
@@ -47,25 +45,10 @@ export default function SettingsScreen() {
           style={{ alignSelf: 'center', marginRight: 10 }}
         />
       </TouchableOpacity>
-      {/* Set Height and Weight */}
-      <TouchableOpacity onPress={() => navigation.navigate('Configure Height and Weight')} style={styles.setting}>
-        <Text
-          style={[styles.settingText, { color: darkModeEnabled ? '#fff' : '#333' }]}
-        >
-         Configure Height and Weight
-        </Text>
-        <Ionicons
-          name="caret-forward-outline"
-          size={25}
-          color={darkModeEnabled ? '#fff' : '#333'}
-          style={{ alignSelf: 'center', marginRight: 10 }}
-        />
-      </TouchableOpacity>
+
       {/* Set Food Preferences */}
-      <TouchableOpacity onPress={() => navigation.navigate('Set Food Preferences')} style={styles.setting}>
-        <Text
-          style={[styles.settingText, { color: darkModeEnabled ? '#fff' : '#333' }]}
-        >
+      <TouchableOpacity onPress={() => router.push('/food-pref')} style={styles.setting}>
+        <Text style={[styles.settingText, { color: darkModeEnabled ? '#fff' : '#333' }]}>
          Set Food Preferences
         </Text>
         <Ionicons
@@ -75,6 +58,7 @@ export default function SettingsScreen() {
           style={{ alignSelf: 'center', marginRight: 10 }}
         />
       </TouchableOpacity>
+
       {/* Notifications Setting */}
       <View style={[styles.setting, { backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff' }]}>
         <Text style={[styles.settingText, { color: darkModeEnabled ? "#fff" : "#333" }]}>Enable Notifications</Text>
@@ -95,13 +79,22 @@ export default function SettingsScreen() {
           trackColor={{ false: '#ccc', true: '#007aff' }}
           thumbColor={darkModeEnabled ? '#007aff' : '#f4f3f4'}
         />
-        <StatusBar style={darkModeEnabled ? "light" : "dark"} />
       </View>
 
-      {/* Reset Settings Button */}
-      <TouchableOpacity style={styles.resetButton} onPress={resetApp}>
-        <Text style={styles.resetButtonText}>Reset Settings</Text>
+      {/* Reset Button */}
+      <TouchableOpacity 
+        style={[styles.resetButton, { backgroundColor: darkModeEnabled ? '#333' : '#f5f5f5' }]}
+        onPress={resetApp}
+      >
+        <Text style={[styles.resetButtonText, { color: darkModeEnabled ? '#fff' : '#333' }]}>
+          Reset All Settings
+        </Text>
       </TouchableOpacity>
+
+      {/* Sign Out Button */}
+      <SignOutButton />
+      
+      <StatusBar style={darkModeEnabled ? "light" : "dark"} />
     </View>
   );
 }
@@ -115,7 +108,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
-    textAlign: 'center',
   },
   setting: {
     flexDirection: 'row',
@@ -123,21 +115,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: '#eee',
   },
   settingText: {
-    fontSize: 18,
+    fontSize: 16,
+    flex: 1,
   },
   resetButton: {
-    marginTop: 30,
+    marginTop: 20,
     padding: 15,
-    backgroundColor: '#ff3b30',
     borderRadius: 8,
     alignItems: 'center',
   },
   resetButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
     fontSize: 16,
+    fontWeight: '500',
   },
 });

@@ -6,6 +6,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (token: string) => Promise<void>;
   logout: () => Promise<void>;
+  signOut: () => Promise<void>;
   loading: boolean;
 }
 
@@ -22,7 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const checkAuthStatus = async () => {
     try {
       const token = await AsyncStorage.getItem('userToken');
-      setIsAuthenticated(!!token);
+      setIsAuthenticated(token !== null && token.trim() !== '');
     } catch (error) {
       console.error('Error checking auth status:', error);
     } finally {
@@ -45,15 +46,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await AsyncStorage.removeItem('userToken');
       setIsAuthenticated(false);
-      router.replace('/login');
+      router.replace('/');
     } catch (error) {
       console.error('Error during logout:', error);
       throw error;
     }
   };
 
+  const signOut = async () => {
+    try {
+      await AsyncStorage.removeItem('userToken');
+      setIsAuthenticated(false);
+      router.replace('/');
+    } catch (error) {
+      console.error('Error during sign out:', error);
+      throw error;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout, loading }}>
+    <AuthContext.Provider value={{ isAuthenticated, login, logout, signOut, loading }}>
       {children}
     </AuthContext.Provider>
   );
