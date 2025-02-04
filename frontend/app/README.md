@@ -1,4 +1,4 @@
-# App Router Structure
+# App Router Structure   (Please read) by rafaa
 
 This folder contains the routing and layout structure for our app using Expo Router. Here's how it's organized:
 
