@@ -4,22 +4,32 @@ import bcrypt from 'bcryptjs';
 interface IUser extends mongoose.Document {
   email: string;
   password: string;
+  resetToken?: string;
+  resetTokenExpiry?: number;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
 const userSchema = new mongoose.Schema({
   email: {
     type: String,
-    required: true,
+    required: [true, 'Email is required'],
     unique: true,
     trim: true,
     lowercase: true,
+    validate: {
+      validator: function(v: string) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+      },
+      message: (props: { value: string }) => `${props.value} is not a valid email!`
+    }
   },
   password: {
     type: String,
-    required: true,
-    minlength: 6,
+    required: [true, 'Password is required'],
+    minlength: [6, 'Password must be at least 6 characters long']
   },
+  resetToken: String,
+  resetTokenExpiry: Date
 }, {
   timestamps: true,
 });
@@ -27,7 +37,8 @@ const userSchema = new mongoose.Schema({
 // Hash password before saving
 userSchema.pre('save', async function(next) {
   if (this.isModified('password')) {
-    this.password = await bcrypt.hash(this.password, 10);
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
   }
   next();
 });
