@@ -4,9 +4,13 @@ import { User } from '../models/User';
 import { MongoError } from 'mongodb';
 import nodemailer from 'nodemailer';
 import crypto from 'crypto';
+import { OAuth2Client } from 'google-auth-library';
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+
+const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 // Create a transporter for sending emails
 const transporter = nodemailer.createTransport({
@@ -75,31 +79,58 @@ router.post('/register', async (req, res) => {
 // Login
 router.post('/login', async (req, res) => {
   try {
+    console.log('Login request received:', {
+      body: req.body,
+      headers: req.headers
+    });
+    
     const { email, password } = req.body;
 
-    // Find user
+    if (!email || !password) {
+      console.log('Missing email or password');
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
+
     const user = await User.findOne({ email });
+    console.log('User found:', user ? 'Yes' : 'No');
+
     if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      console.log('User not found for email:', email);
+      return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // Check password
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+    const isValidPassword = await user.comparePassword(password);
+    console.log('Password validation result:', isValidPassword);
+
+    if (!isValidPassword) {
+      console.log('Invalid password for user:', email);
+      return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // Generate token
     const token = jwt.sign(
-      { userId: user._id },
-      JWT_SECRET,
-      { expiresIn: '7d' }
+      { 
+        userId: user._id,
+        email: user.email
+      }, 
+      JWT_SECRET, 
+      { expiresIn: '24h' }
     );
 
-    res.json({ token });
-  } catch (error) {
+    console.log('Login successful for user:', email);
+    res.json({ 
+      token,
+      user: {
+        email: user.email,
+        id: user._id
+      }
+    });
+  } catch (error: any) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Error during login' });
+    console.error('Full error details:', JSON.stringify(error, null, 2));
+    res.status(500).json({ 
+      message: 'Internal server error',
+      details: error?.message || 'Unknown error'
+    });
   }
 });
 
@@ -175,6 +206,67 @@ router.post('/reset-password/:token', async (req, res) => {
   } catch (error) {
     console.error('Password reset error:', error);
     res.status(500).json({ message: 'Error resetting password' });
+  }
+});
+
+// Test route to check users
+router.get('/test', async (req, res) => {
+  try {
+    const users = await User.find({}, { email: 1, _id: 0 });
+    console.log('All users:', users);
+    res.json({ users });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ message: 'Error fetching users' });
+  }
+});
+
+// Google Sign In
+router.post('/google', async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    // Verify Google token
+    const ticket = await googleClient.verifyIdToken({
+      idToken: token,
+      audience: GOOGLE_CLIENT_ID
+    });
+
+    const payload = ticket.getPayload();
+    if (!payload) {
+      return res.status(400).json({ message: 'Invalid token' });
+    }
+
+    const { email, sub: googleId } = payload;
+
+    // Find or create user
+    let user = await User.findOne({ email });
+    
+    if (!user) {
+      // Create new user with Google credentials
+      user = new User({
+        email,
+        googleId,
+        password: crypto.randomBytes(32).toString('hex') // Random password for Google users
+      });
+      await user.save();
+    } else if (!user.googleId) {
+      // Link Google account to existing user
+      user.googleId = googleId;
+      await user.save();
+    }
+
+    // Generate JWT token
+    const jwtToken = jwt.sign(
+      { userId: user._id },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.json({ token: jwtToken });
+  } catch (error) {
+    console.error('Google authentication error:', error);
+    res.status(500).json({ message: 'Error during Google authentication' });
   }
 });
 

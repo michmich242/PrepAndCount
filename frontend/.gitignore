@@ -29,12 +29,16 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# Sensitive files
+# local env files
 .env
-accessToken.js
+.env.*
+!.env.template
 
 # typescript
 *.tsbuildinfo
+
+# sensitive files
+accessToken.js
 
 app-example
 

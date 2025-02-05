@@ -10,8 +10,10 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: '*',
-  credentials: true
+  origin: ['http://localhost:8081', 'http://10.0.0.196:8081', 'exp://10.0.0.196:8081'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Accept', 'Authorization']
 }));
 app.use(express.json());
 

@@ -6,6 +6,7 @@ interface IUser extends mongoose.Document {
   password: string;
   resetToken?: string;
   resetTokenExpiry?: number;
+  googleId?: string;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -29,7 +30,12 @@ const userSchema = new mongoose.Schema({
     minlength: [6, 'Password must be at least 6 characters long']
   },
   resetToken: String,
-  resetTokenExpiry: Date
+  resetTokenExpiry: Date,
+  googleId: {
+    type: String,
+    sparse: true,
+    unique: true
+  }
 }, {
   timestamps: true,
 });
@@ -43,9 +49,14 @@ userSchema.pre('save', async function(next) {
   next();
 });
 
-// Method to compare passwords
+// Method to compare password
 userSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
-  return bcrypt.compare(candidatePassword, this.password);
+  try {
+    return await bcrypt.compare(candidatePassword, this.password);
+  } catch (error) {
+    console.error('Error comparing passwords:', error);
+    return false;
+  }
 };
 
 export const User = mongoose.model<IUser>('User', userSchema);

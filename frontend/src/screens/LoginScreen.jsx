@@ -9,34 +9,67 @@ import {
   Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import API_URL from '../../config/config';
+import { API_URL } from '../config/config';
+import GoogleSignInButton from '../components/GoogleSignInButton';
+import { useAuth } from '../../context/AuthContext';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please enter both email and password');
+      return;
+    }
+
     try {
-      const response = await fetch(`${API_URL}/auth/login`, {
+      console.log('Attempting login to:', `${API_URL}/api/auth/login`);
+      console.log('With credentials:', { email, password });
+      
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
+      console.log('Response status:', response.status);
+      
+      let data;
+      const responseText = await response.text();
+      try {
+        data = JSON.parse(responseText);
+        console.log('Response data:', data);
+      } catch (e) {
+        console.error('Error parsing response:', responseText);
+        throw new Error('Invalid response from server');
+      }
 
-      if (response.ok) {
-        await AsyncStorage.setItem('userToken', data.token);
+      if (response.ok && data.token) {
+        console.log('Login successful, setting token');
+        await signIn(data.token);
+        console.log('Token set, navigating to tabs');
         router.replace('(tabs)');
       } else {
+        console.log('Login failed:', data);
         Alert.alert('Error', data.message || 'Login failed');
       }
     } catch (error) {
-      Alert.alert('Error', 'An error occurred during login');
+      console.error('Login error:', error);
+      console.error('Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      });
+      Alert.alert(
+        'Error',
+        'An error occurred during login. Please check your network connection and try again.'
+      );
     }
   };
 
@@ -71,6 +104,15 @@ export default function LoginScreen() {
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
+      
+      <View style={styles.divider}>
+        <View style={styles.dividerLine} />
+        <Text style={styles.dividerText}>OR</Text>
+        <View style={styles.dividerLine} />
+      </View>
+
+      <GoogleSignInButton />
+      
       <View style={styles.linksContainer}>
         <TouchableOpacity onPress={handleRegister}>
           <Text style={styles.linkText}>Don't have an account? Register</Text>
@@ -119,6 +161,21 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#ddd',
+  },
+  dividerText: {
+    marginHorizontal: 10,
+    color: '#666',
+    fontSize: 14,
   },
   linksContainer: {
     gap: 10,

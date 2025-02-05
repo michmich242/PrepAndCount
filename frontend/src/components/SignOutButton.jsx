@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
+import { router } from 'expo-router';
 
 const SignOutButton = () => {
   const { signOut } = useAuth();
@@ -8,6 +9,7 @@ const SignOutButton = () => {
   const handleSignOut = async () => {
     try {
       await signOut();
+      router.replace('/(auth)');
     } catch (error) {
       console.error('Error signing out:', error);
     }

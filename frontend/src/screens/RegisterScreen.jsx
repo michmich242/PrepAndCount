@@ -9,10 +9,12 @@ import {
   Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import API_URL from '../../config/config';
+import { API_URL } from '../config/config';
+import { useAuth } from '../../context/AuthContext';
 
 export default function RegisterScreen() {
   const router = useRouter();
+  const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -34,8 +36,8 @@ export default function RegisterScreen() {
     }
 
     try {
-      console.log('Making request to:', `${API_URL}/auth/register`);
-      const response = await fetch(`${API_URL}/auth/register`, {
+      console.log('Making request to:', `${API_URL}/api/auth/register`);
+      const response = await fetch(`${API_URL}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -50,23 +52,16 @@ export default function RegisterScreen() {
       console.log('Registration response:', data);
 
       if (response.ok) {
-        Alert.alert('Success', 'Registration successful', [
-          {
-            text: 'OK',
-            onPress: () => router.push('/'),
-          },
-        ]);
+        Alert.alert('Success', 'Registration successful! Please log in.');
+        signIn(email, password); // Add password to login request
+        router.replace('/');
       } else {
         Alert.alert('Error', data.message || 'Registration failed');
       }
     } catch (error) {
       console.error('Registration error:', error);
-      Alert.alert('Error', 'Network error. Please try again.');
+      Alert.alert('Error', 'An error occurred during registration');
     }
-  };
-
-  const handleLogin = () => {
-    router.push('/');
   };
 
   return (
@@ -83,8 +78,8 @@ export default function RegisterScreen() {
         placeholder="Email"
         value={email}
         onChangeText={setEmail}
-        autoCapitalize="none"
         keyboardType="email-address"
+        autoCapitalize="none"
       />
       <TextInput
         style={styles.input}
@@ -103,8 +98,8 @@ export default function RegisterScreen() {
       <TouchableOpacity style={styles.button} onPress={handleRegister}>
         <Text style={styles.buttonText}>Register</Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={handleLogin}>
-        <Text style={styles.linkText}>Already have an account? Login</Text>
+      <TouchableOpacity style={styles.loginButton} onPress={() => router.back()}>
+        <Text style={styles.loginButtonText}>Back to Login</Text>
       </TouchableOpacity>
     </View>
   );
@@ -122,8 +117,8 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   logo: {
-    width: 200,
-    height: 200,
+    width: 150,
+    height: 150,
   },
   input: {
     height: 50,
@@ -132,24 +127,29 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 15,
     paddingHorizontal: 15,
-    backgroundColor: '#f9f9f9',
+    fontSize: 16,
+    backgroundColor: '#fff',
   },
   button: {
     backgroundColor: '#007AFF',
-    height: 50,
+    padding: 15,
     borderRadius: 8,
-    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 10,
   },
   buttonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
-  linkText: {
+  loginButton: {
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  loginButtonText: {
     color: '#007AFF',
-    textAlign: 'center',
-    marginTop: 10,
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

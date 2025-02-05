@@ -9,33 +9,6 @@ import { AuthProvider, useAuth } from '../context/AuthContext';
 
 export const DMContext = createContext();
 
-function RootLayoutNav() {
-  const { isAuthenticated, loading } = useAuth();
-  const [darkModeEnabled, setDarkModeEnabled] = useState(false);
-  const [mealTimes, setMealTimes] = useState([]);
-
-  if (loading) {
-    return null;
-  }
-
-  return (
-    <DMContext.Provider value={[darkModeEnabled, setDarkModeEnabled]}>
-      <MacroProvider>
-        <MealTimesContext.Provider value={{ mealTimes, setMealTimes }}>
-          <StatusBar style={darkModeEnabled ? "light" : "dark"} />
-          <Stack screenOptions={{ headerShown: false }}>
-            {!isAuthenticated ? (
-              <Stack.Screen name="(auth)" />
-            ) : (
-              <Stack.Screen name="(tabs)" />
-            )}
-          </Stack>
-        </MealTimesContext.Provider>
-      </MacroProvider>
-    </DMContext.Provider>
-  );
-}
-
 export default function RootLayout() {
   const [isLoading, setIsLoading] = useState(true);
 
@@ -61,5 +34,32 @@ export default function RootLayout() {
     <AuthProvider>
       <RootLayoutNav />
     </AuthProvider>
+  );
+}
+
+function RootLayoutNav() {
+  const { isAuthenticated, loading } = useAuth();
+  const [darkModeEnabled, setDarkModeEnabled] = useState(false);
+  const [mealTimes, setMealTimes] = useState([]);
+
+  if (loading) {
+    return null;
+  }
+
+  return (
+    <DMContext.Provider value={[darkModeEnabled, setDarkModeEnabled]}>
+      <MacroProvider>
+        <MealTimesContext.Provider value={{ mealTimes, setMealTimes }}>
+          <StatusBar style={darkModeEnabled ? "light" : "dark"} />
+          <Stack screenOptions={{ headerShown: false }}>
+            {!isAuthenticated ? (
+              <Stack.Screen name="(auth)" />
+            ) : (
+              <Stack.Screen name="(tabs)" />
+            )}
+          </Stack>
+        </MealTimesContext.Provider>
+      </MacroProvider>
+    </DMContext.Provider>
   );
 }
