@@ -1,80 +1,75 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
-  TextInput,
   TouchableOpacity,
   Text,
   StyleSheet,
-  Alert,
+  ActivityIndicator,
   Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { API_URL } from '../config/config';
 import GoogleSignInButton from '../components/GoogleSignInButton';
 import { useAuth } from '../../context/AuthContext';
+import { validateEmail } from '../utils/validation';
+import { handleError } from '../utils/errorHandler';
+import { apiClient } from '../utils/apiClient';
+import { useForm } from '../hooks/useForm';
+import { FormInput } from '../components/form/FormInput';
 
 export default function LoginScreen() {
   const router = useRouter();
   const { signIn } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please enter both email and password');
-      return;
+  const validateForm = (values) => {
+    const errors = {};
+    
+    // Email validation
+    const emailValidation = validateEmail(values.email);
+    if (!emailValidation.isValid) {
+      errors.email = emailValidation.error;
     }
 
-    try {
-      console.log('Attempting login to:', `${API_URL}/api/auth/login`);
-      console.log('With credentials:', { email, password });
-      
-      const response = await fetch(`${API_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      console.log('Response status:', response.status);
-      
-      let data;
-      const responseText = await response.text();
-      try {
-        data = JSON.parse(responseText);
-        console.log('Response data:', data);
-      } catch (e) {
-        console.error('Error parsing response:', responseText);
-        throw new Error('Invalid response from server');
-      }
-
-      if (response.ok && data.token) {
-        console.log('Login successful, setting token');
-        await signIn(data.token);
-        console.log('Token set, navigating to tabs');
-        router.replace('(tabs)');
-      } else {
-        console.log('Login failed:', data);
-        Alert.alert('Error', data.message || 'Login failed');
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      console.error('Error details:', {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-      });
-      Alert.alert(
-        'Error',
-        'An error occurred during login. Please check your network connection and try again.'
-      );
+    // Password validation
+    if (!values.password) {
+      errors.password = 'Password is required';
     }
+
+    return errors;
   };
 
-  const handleRegister = () => {
-    router.push('/register');
+  const {
+    values,
+    errors,
+    touched,
+    isSubmitting,
+    handleChange,
+    handleBlur,
+    handleSubmit,
+  } = useForm(
+    {
+      email: '',
+      password: '',
+    },
+    validateForm
+  );
+
+  const onSubmit = async (formValues) => {
+    try {
+      const response = await apiClient.post('/api/auth/login', {
+        email: formValues.email,
+        password: formValues.password,
+      });
+
+      if (response.token) {
+        await signIn(response.token);
+        router.replace('(tabs)');
+      } else {
+        throw new Error('No token received');
+      }
+    } catch (error) {
+      handleError(error);
+      throw error;
+    }
   };
 
   return (
@@ -86,41 +81,61 @@ export default function LoginScreen() {
           resizeMode="contain"
         />
       </View>
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
+
+      <FormInput
+        label="Email"
+        placeholder="Enter your email"
+        value={values.email}
+        onChangeText={(text) => handleChange('email', text)}
+        onBlur={() => handleBlur('email')}
+        error={errors.email}
+        touched={touched.email}
         keyboardType="email-address"
+        autoCapitalize="none"
+        editable={!isSubmitting}
+        autoComplete="email"
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
+
+      <FormInput
+        label="Password"
+        placeholder="Enter your password"
+        value={values.password}
+        onChangeText={(text) => handleChange('password', text)}
+        onBlur={() => handleBlur('password')}
+        error={errors.password}
+        touched={touched.password}
         secureTextEntry
+        editable={!isSubmitting}
+        autoComplete="password"
       />
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
+
+      <TouchableOpacity 
+        style={[
+          styles.button,
+          isSubmitting && styles.buttonDisabled,
+          Object.keys(errors).length > 0 && styles.buttonDisabled
+        ]} 
+        onPress={() => handleSubmit(onSubmit)}
+        disabled={isSubmitting || Object.keys(errors).length > 0}
+      >
+        {isSubmitting ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Login</Text>
+        )}
       </TouchableOpacity>
-      
-      <View style={styles.divider}>
-        <View style={styles.dividerLine} />
-        <Text style={styles.dividerText}>OR</Text>
-        <View style={styles.dividerLine} />
-      </View>
 
       <GoogleSignInButton />
-      
-      <View style={styles.linksContainer}>
-        <TouchableOpacity onPress={handleRegister}>
-          <Text style={styles.linkText}>Don't have an account? Register</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password')}>
-          <Text style={styles.linkText}>Forgot Password?</Text>
-        </TouchableOpacity>
-      </View>
+
+      <TouchableOpacity 
+        style={styles.registerButton} 
+        onPress={() => router.push('/register')}
+        disabled={isSubmitting}
+      >
+        <Text style={styles.registerButtonText}>
+          Don't have an account? Register
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -137,17 +152,8 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   logo: {
-    width: 200,
-    height: 200,
-  },
-  input: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    marginBottom: 15,
-    paddingHorizontal: 15,
-    backgroundColor: '#f9f9f9',
+    width: 150,
+    height: 150,
   },
   button: {
     backgroundColor: '#007AFF',
@@ -155,35 +161,23 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 15,
+    marginTop: 10,
+  },
+  buttonDisabled: {
+    backgroundColor: '#ccc',
   },
   buttonText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '600',
   },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 20,
+  registerButton: {
+    marginTop: 15,
+    padding: 10,
   },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#ddd',
-  },
-  dividerText: {
-    marginHorizontal: 10,
-    color: '#666',
-    fontSize: 14,
-  },
-  linksContainer: {
-    gap: 10,
-    alignItems: 'center',
-  },
-  linkText: {
+  registerButtonText: {
     color: '#007AFF',
+    fontSize: 16,
     textAlign: 'center',
-    marginTop: 10,
   },
 });

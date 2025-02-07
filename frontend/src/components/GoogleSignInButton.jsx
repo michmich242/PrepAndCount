@@ -1,10 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
 
 export default function GoogleSignInButton() {
-  const router = useRouter();
-
   const handlePress = () => {
     Alert.alert(
       'Coming Soon',
@@ -25,7 +22,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#4285F4',
-    borderRadius: 4,
+    borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     marginVertical: 8,

@@ -1,66 +1,88 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
-  TextInput,
   TouchableOpacity,
   Text,
   StyleSheet,
-  Alert,
+  ActivityIndicator,
   Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { API_URL } from '../config/config';
 import { useAuth } from '../../context/AuthContext';
+import { validateEmail, validatePassword, validatePasswordConfirmation } from '../utils/validation';
+import { handleError } from '../utils/errorHandler';
+import { apiClient } from '../utils/apiClient';
+import { useForm } from '../hooks/useForm';
+import { FormInput } from '../components/form/FormInput';
+import { PasswordStrengthIndicator } from '../components/form/PasswordStrengthIndicator';
 
 export default function RegisterScreen() {
   const router = useRouter();
   const { signIn } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
 
-  const handleRegister = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
+  const validateForm = (values) => {
+    const errors = {};
+    
+    // Email validation
+    const emailValidation = validateEmail(values.email);
+    if (!emailValidation.isValid) {
+      errors.email = emailValidation.error;
     }
 
-    if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters long');
-      return;
+    // Password validation
+    const passwordValidation = validatePassword(values.password);
+    if (!passwordValidation.isValid) {
+      errors.password = passwordValidation.error;
     }
 
-    if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
-      return;
+    // Confirm password validation
+    if (values.password) {
+      const confirmValidation = validatePasswordConfirmation(values.password, values.confirmPassword);
+      if (!confirmValidation.isValid) {
+        errors.confirmPassword = confirmValidation.error;
+      }
     }
 
+    return errors;
+  };
+
+  const {
+    values,
+    errors,
+    touched,
+    isSubmitting,
+    handleChange,
+    handleBlur,
+    handleSubmit,
+  } = useForm(
+    {
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
+    validateForm
+  );
+
+  const onSubmit = async (formValues) => {
     try {
-      console.log('Making request to:', `${API_URL}/api/auth/register`);
-      const response = await fetch(`${API_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
+      // Make API request using our new apiClient
+      await apiClient.post('/api/auth/register', {
+        email: formValues.email,
+        password: formValues.password,
       });
 
-      const data = await response.json();
-      console.log('Registration response:', data);
+      // Handle successful registration
+      handleError({ 
+        type: 'SUCCESS',
+        message: 'Registration successful! Please log in.'
+      }, 'Success');
+      
+      await signIn(formValues.email, formValues.password);
+      router.replace('/');
 
-      if (response.ok) {
-        Alert.alert('Success', 'Registration successful! Please log in.');
-        signIn(email, password); // Add password to login request
-        router.replace('/');
-      } else {
-        Alert.alert('Error', data.message || 'Registration failed');
-      }
     } catch (error) {
-      console.error('Registration error:', error);
-      Alert.alert('Error', 'An error occurred during registration');
+      handleError(error);
+      throw error; // Re-throw to prevent form from resetting
     }
   };
 
@@ -73,33 +95,72 @@ export default function RegisterScreen() {
           resizeMode="contain"
         />
       </View>
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
+
+      <FormInput
+        label="Email"
+        placeholder="Enter your email"
+        value={values.email}
+        onChangeText={(text) => handleChange('email', text)}
+        onBlur={() => handleBlur('email')}
+        error={errors.email}
+        touched={touched.email}
         keyboardType="email-address"
         autoCapitalize="none"
+        editable={!isSubmitting}
+        autoComplete="email"
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
+
+      <FormInput
+        label="Password"
+        placeholder="Enter your password"
+        value={values.password}
+        onChangeText={(text) => handleChange('password', text)}
+        onBlur={() => handleBlur('password')}
+        error={errors.password}
+        touched={touched.password}
         secureTextEntry
+        editable={!isSubmitting}
+        autoComplete="new-password"
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Confirm Password"
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
+      <PasswordStrengthIndicator password={values.password} />
+
+      <FormInput
+        label="Confirm Password"
+        placeholder="Confirm your password"
+        value={values.confirmPassword}
+        onChangeText={(text) => handleChange('confirmPassword', text)}
+        onBlur={() => handleBlur('confirmPassword')}
+        error={errors.confirmPassword}
+        touched={touched.confirmPassword}
         secureTextEntry
+        editable={!isSubmitting}
+        autoComplete="new-password"
       />
-      <TouchableOpacity style={styles.button} onPress={handleRegister}>
-        <Text style={styles.buttonText}>Register</Text>
+
+      <TouchableOpacity 
+        style={[
+          styles.button,
+          isSubmitting && styles.buttonDisabled,
+          Object.keys(errors).length > 0 && styles.buttonDisabled
+        ]} 
+        onPress={() => handleSubmit(onSubmit)}
+        disabled={isSubmitting || Object.keys(errors).length > 0}
+      >
+        {isSubmitting ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Register</Text>
+        )}
       </TouchableOpacity>
-      <TouchableOpacity style={styles.loginButton} onPress={() => router.back()}>
-        <Text style={styles.loginButtonText}>Back to Login</Text>
+
+      <TouchableOpacity 
+        style={styles.loginButton} 
+        onPress={() => router.back()}
+        disabled={isSubmitting}
+      >
+        <Text style={styles.loginButtonText}>
+          Already have an account? Login
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -120,36 +181,29 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
   },
-  input: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    marginBottom: 15,
-    paddingHorizontal: 15,
-    fontSize: 16,
-    backgroundColor: '#fff',
-  },
   button: {
     backgroundColor: '#007AFF',
-    padding: 15,
+    height: 50,
     borderRadius: 8,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 10,
+    marginTop: 10,
+  },
+  buttonDisabled: {
+    backgroundColor: '#ccc',
   },
   buttonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
   },
   loginButton: {
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
+    marginTop: 15,
+    padding: 10,
   },
   loginButtonText: {
     color: '#007AFF',
     fontSize: 16,
-    fontWeight: '600',
+    textAlign: 'center',
   },
 });
