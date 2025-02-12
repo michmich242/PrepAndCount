@@ -10,12 +10,20 @@ export const useForm = (initialValues = {}, validate) => {
   const handleChange = useCallback((field, value) => {
     setValues(prev => ({ ...prev, [field]: value }));
     
-    // If field has been touched, validate it
-    if (touched[field] && validate) {
+    // Validate if the field has been touched or if there are existing errors
+    if ((touched[field] || errors[field]) && validate) {
       const validationErrors = validate({ ...values, [field]: value });
-      setErrors(prev => ({ ...prev, [field]: validationErrors[field] }));
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        if (validationErrors[field]) {
+          newErrors[field] = validationErrors[field];
+        } else {
+          delete newErrors[field];
+        }
+        return newErrors;
+      });
     }
-  }, [touched, values, validate]);
+  }, [touched, values, validate, errors]);
 
   // Handle field blur
   const handleBlur = useCallback((field) => {
@@ -23,7 +31,15 @@ export const useForm = (initialValues = {}, validate) => {
     
     if (validate) {
       const validationErrors = validate(values);
-      setErrors(prev => ({ ...prev, [field]: validationErrors[field] }));
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        if (validationErrors[field]) {
+          newErrors[field] = validationErrors[field];
+        } else {
+          delete newErrors[field];
+        }
+        return newErrors;
+      });
     }
   }, [values, validate]);
 

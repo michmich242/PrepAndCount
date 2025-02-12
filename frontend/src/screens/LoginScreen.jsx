@@ -22,17 +22,21 @@ export default function LoginScreen() {
 
   const validateForm = (values) => {
     const errors = {};
+    const fieldsToValidate = Object.keys(values);
     
-    // Email validation
-    const emailValidation = validateEmail(values.email);
-    if (!emailValidation.isValid) {
-      errors.email = emailValidation.error;
-    }
-
-    // Password validation
-    if (!values.password) {
-      errors.password = 'Password is required';
-    }
+    fieldsToValidate.forEach(field => {
+      if (field === 'email' && values.email) {
+        // Only validate email if it's not empty
+        const emailValidation = validateEmail(values.email);
+        if (!emailValidation.isValid) {
+          errors.email = emailValidation.error;
+        }
+      }
+      
+      if (field === 'password' && values.password === '') {
+        errors.password = 'Password is required';
+      }
+    });
 
     return errors;
   };
