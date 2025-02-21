@@ -25,6 +25,8 @@ export default function TabLayout() {
             case 'settings':
               iconName = focused ? 'settings' : 'settings-outline';
               break;
+            case '(add-food-stack)':
+              iconName = focused ? 'restaurant' : 'restaurant-outline'
           }
           return <Ionicons name={iconName} size={size} color={color} />;
         },
@@ -54,9 +56,10 @@ export default function TabLayout() {
         }} 
       />
       <Tabs.Screen 
-        name="add-food" 
+        name="(add-food-stack)" 
         options={{ 
           title: 'Add Food',
+          headerShown: false
         }} 
       />
       <Tabs.Screen 

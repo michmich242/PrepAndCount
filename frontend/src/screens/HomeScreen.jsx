@@ -36,7 +36,7 @@ export default function HomeScreen() {
   };
 
   const navigateToAddFood = () => {
-    router.push('/add-food');
+    router.push('/(add-food-stack)');
   };
 
   const navigateToGroceryList = () => {

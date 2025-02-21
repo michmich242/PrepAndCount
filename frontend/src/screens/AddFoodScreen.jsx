@@ -8,12 +8,12 @@ import {
   StyleSheet,
 } from 'react-native';
 import { callFindByID } from '../../api/callAPI.js';
-import { DMContext } from '../../app/_layout'
+import { DMContext } from '../../app/_layout.jsx'
 import { useContext } from "react"
 import { callAutoComplete } from '../../api/callAPI.js';
 import { callSearch } from '../../api/callAPI.js';
 import MacrosScreen from './MacrosScreen.jsx';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation } from 'expo-router';
 
 
 export default function AddFoodScreen() {
@@ -26,7 +26,7 @@ export default function AddFoodScreen() {
   const [isSuggesting, setSuggesting] = useState(true);
   const [searchText, setSearchText] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
-  const navigation = useNavigation();
+  const navigate = useNavigation()
 
   useEffect(() => {
     if(searchText.length > 0){
@@ -106,21 +106,24 @@ export default function AddFoodScreen() {
   async function handleMacroNav(food_id) {
     try {
         const food_info = await callFindByID(food_id);
+        console.log(food_info[2].serving[0].protein)
 
         // Validate food_info[2].serving
         if (food_info && Array.isArray(food_info[2]?.serving) && food_info[2].serving.length > 0) {
-            navigation.navigate('Macros Screen', { 
-              food_info, 
-              protein: food_info[2]?.serving[0].protein, 
-              fat: food_info[2]?.serving[0].fat, 
-              carbohydrate: food_info[2]?.serving[0].carbohydrate , 
-              fiber: food_info[2]?.serving[0].fiber,
-              vitamin_c: food_info[2]?.serving[0].vitamin_c,
-              iron: food_info[2]?.serving[0].iron,
-              vitamin_a: food_info[2]?.serving[0].vitamin_a,
-              calcium: food_info[2]?.serving[0].calcium,
-              sodium: food_info[2]?.serving[0].sodium,
-              potassium: food_info[2]?.serving[0].potassium,
+            navigate.navigate('macros', { 
+              params: {
+                food_info, 
+                protein: food_info[2]?.serving[0].protein, 
+                fat: food_info[2]?.serving[0].fat, 
+                carbohydrate: food_info[2]?.serving[0].carbohydrate, 
+                fiber: food_info[2]?.serving[0].fiber,
+                vitamin_c: food_info[2]?.serving[0].vitamin_c,
+                iron: food_info[2]?.serving[0].iron,
+                vitamin_a: food_info[2]?.serving[0].vitamin_a,
+                calcium: food_info[2]?.serving[0].calcium,
+                sodium: food_info[2]?.serving[0].sodium,
+                potassium: food_info[2]?.serving[0].potassium,
+              }
             });
         } else {
             console.log('Invalid food_info, no serving found');
