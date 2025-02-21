@@ -48,13 +48,28 @@ class ApiClient {
   async post(endpoint, data, options = {}) {
     try {
       const headers = await this.getHeaders();
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
       const response = await fetch(`${this.baseURL}${endpoint}`, {
         method: 'POST',
         headers: { ...headers, ...options.headers },
         body: JSON.stringify(data),
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
       return this.handleResponse(response);
     } catch (error) {
+      if (error.name === 'AbortError') {
+        const timeoutError = {
+          status: 408,
+          message: 'Request timed out. Please try again.',
+          code: 'TIMEOUT'
+        };
+        handleError(timeoutError);
+        throw timeoutError;
+      }
       handleError(error);
       throw error;
     }

@@ -2,11 +2,13 @@ import { Alert } from 'react-native';
 
 // Error types
 export const ErrorTypes = {
-  VALIDATION: 'VALIDATION',
   NETWORK: 'NETWORK',
-  AUTH: 'AUTH',
   SERVER: 'SERVER',
+  AUTH: 'AUTH',
+  TIMEOUT: 'TIMEOUT',
   UNKNOWN: 'UNKNOWN',
+  SUCCESS: 'SUCCESS',
+  VALIDATION: 'VALIDATION',
 };
 
 // Custom error class
@@ -20,11 +22,13 @@ export class AppError extends Error {
 }
 
 // Error messages mapping
-const ErrorMessages = {
+export const ErrorMessages = {
   [ErrorTypes.NETWORK]: 'Network connection error. Please check your internet connection.',
-  [ErrorTypes.AUTH]: 'Authentication error. Please try logging in again.',
+  [ErrorTypes.AUTH]: 'Authentication error. Please check your credentials.',
   [ErrorTypes.SERVER]: 'Server error. Please try again later.',
-  [ErrorTypes.UNKNOWN]: 'An unexpected error occurred. Please try again.',
+  [ErrorTypes.TIMEOUT]: 'Request timed out. Please try again.',
+  [ErrorTypes.UNKNOWN]: 'An unexpected error occurred.',
+  [ErrorTypes.SUCCESS]: 'Operation completed successfully.',
 };
 
 // Main error handler
@@ -38,6 +42,12 @@ export const handleError = (error, customTitle = 'Error') => {
   if (error.name === 'TypeError' && error.message.includes('Network request failed')) {
     errorType = ErrorTypes.NETWORK;
     errorMessage = ErrorMessages[ErrorTypes.NETWORK];
+  }
+
+  // Handle timeout errors
+  if (error.code === 'TIMEOUT' || error.status === 408) {
+    errorType = ErrorTypes.TIMEOUT;
+    errorMessage = ErrorMessages[ErrorTypes.TIMEOUT];
   }
 
   // Handle server errors (status codes 500+)

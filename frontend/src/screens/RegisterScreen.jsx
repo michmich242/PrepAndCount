@@ -81,8 +81,11 @@ export default function RegisterScreen() {
       router.replace('/');
 
     } catch (error) {
+      // Don't throw the error after handling it
       handleError(error);
-      throw error; // Re-throw to prevent form from resetting
+      
+      // Return false to prevent form from resetting
+      return false;
     }
   };
 

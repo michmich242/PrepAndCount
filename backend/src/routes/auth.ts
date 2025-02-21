@@ -32,8 +32,14 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Email and password are required' });
     }
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    // Check if user already exists with timeout
+    const existingUser = await Promise.race([
+      User.findOne({ email }),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Database operation timed out')), 10000)
+      )
+    ]);
+
     if (existingUser) {
       console.log('User already exists:', email);
       return res.status(400).json({ message: 'User already exists' });
@@ -48,30 +54,50 @@ router.post('/register', async (req, res) => {
     if (validationError) {
       console.error('Validation error:', validationError);
       return res.status(400).json({ 
-        message: 'Validation error', 
-        errors: validationError.errors 
+        message: 'Validation error',
+        errors: Object.values(validationError.errors).map(err => err.message)
       });
     }
 
-    // Try to save the user
-    try {
-      await user.save();
-      console.log('User created successfully:', email);
-      res.status(201).json({ message: 'User created successfully' });
-    } catch (error) {
-      console.error('Error saving user:', error);
-      if (error instanceof Error && (error as MongoError).code === 11000) {
-        return res.status(400).json({ message: 'Email already exists' });
-      }
-      throw error;
-    }
-  } catch (error) {
+    // Save user with timeout
+    await Promise.race([
+      user.save(),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Database operation timed out')), 10000)
+      )
+    ]);
+
+    res.status(201).json({ message: 'User created successfully' });
+
+  } catch (error: unknown) {
     console.error('Registration error details:', error);
-    console.error('Full error object:', JSON.stringify(error, null, 2));
+    
+    // Handle specific error types
+    if (error instanceof Error && error.message === 'Database operation timed out') {
+      return res.status(504).json({ 
+        message: 'Registration timed out. Please try again.',
+        error: 'TIMEOUT'
+      });
+    }
+    
+    // Type guard for MongoDB errors
+    interface MongoError extends Error {
+      code?: number;
+    }
+    
+    if (error instanceof Error && 
+        'code' in error && 
+        (error as MongoError).code === 11000) {
+      return res.status(400).json({ 
+        message: 'User already exists',
+        error: 'DUPLICATE_USER'
+      });
+    }
+
     res.status(500).json({ 
       message: 'Error creating user', 
       error: error instanceof Error ? error.message : 'Unknown error',
-      details: error instanceof Error ? error.toString() : 'Unknown error'
+      errorType: error instanceof Error ? error.name : 'Unknown'
     });
   }
 });
