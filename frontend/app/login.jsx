@@ -9,11 +9,19 @@ import {
   ScrollView,
 } from 'react-native';
 
+
+
 export default function LoginScreen({ navigation }) {
+
+
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = () => {
+
+
+
+  const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert('Error', 'Please fill in all fields.');
       return;
@@ -21,8 +29,29 @@ export default function LoginScreen({ navigation }) {
 
     // Simulate login logic (e.g., API call)
     if (email.length != 0 && password.length != 0) {
-      Alert.alert('Success', 'Login successful!');
-      navigation.navigate('Home'); // Navigate to Home after successful login
+
+      try {
+        const response = await fetch(`http://10.0.2.2:5000/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, password }),
+        });
+    
+        const data = await response.json();
+        console.log(email, password);
+    
+        if (response.status === 200) {
+          Alert.alert('Success', data.message);
+          navigation.navigate('Home');
+        } else {
+          Alert.alert('Error', data.message);
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        Alert.alert('Error', 'Unable to connect to the server.');
+      }
     } else {
       Alert.alert('Error', 'Invalid email or password.');
     }
