@@ -30,6 +30,7 @@ SplashScreen.preventAutoHideAsync();
 const Tab = createBottomTabNavigator();
 const SettingsStack = createNativeStackNavigator();
 const AddFoodStack = createNativeStackNavigator();
+const HomeStack = createNativeStackNavigator();
 
 
 export const DMContext = React.createContext({});
@@ -108,6 +109,32 @@ export default function RootLayout() {
       />
     </AddFoodStack.Navigator>
   );
+
+  const HomeStackScreen = () => (
+    <HomeStack.Navigator>
+      <HomeStack.Screen 
+        options={{ headerShown: false }} 
+        name="Home" 
+        component={HomeScreen} 
+      />
+      <HomeStack.Screen 
+        options={{
+          headerStyle: { backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff" }, 
+          headerTintColor: darkModeEnabled ? "#fff" : "#333"
+        }} 
+        name="Add Food" 
+        component={AddFoodScreen} 
+      />
+      <HomeStack.Screen 
+        options={{
+          headerStyle: { backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff" }, 
+          headerTintColor: darkModeEnabled ? "#fff" : "#333"
+        }} 
+        name="Grocery List" 
+        component={GroceryListScreen} 
+      />
+    </HomeStack.Navigator>
+  );
   
 
 
@@ -142,7 +169,7 @@ export default function RootLayout() {
               headerTintColor: darkModeEnabled ? "#fff" :  "#1c1b1a"
             })}
           >
-            <Tab.Screen name="Home" component={HomeScreen} />
+            <Tab.Screen name="Home" component={HomeStackScreen} />
             <Tab.Screen name="Grocery List" component={GroceryListScreen} />
             <Tab.Screen name="Add Food" component={AddFoodStackScreen} />
             <Tab.Screen name="Settings" component={SettingsStackScreen} />
