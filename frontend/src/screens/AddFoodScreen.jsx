@@ -51,17 +51,24 @@ export default function AddFoodScreen() {
  const handleFetchingFood = (suggestion, pageNumber) => {
     async function fetchFoodItems(){
       try{
-        const [food, new_max_results] = await callSearch(suggestion, pageNumber);
+        const {results: food, max_results: new_max_results} = await callSearch(suggestion, pageNumber);
+        
+        if(!food){
+          setFoodItems([]);
+          return;
+        }
 
-        if(new_max_results != maxResults){
+        if(new_max_results !== maxResults){
           setMaxResults(new_max_results);
         }
+
 
         const foodNames = food.food.map((item) => ({
             food_id: item.food_id,
             food_name: item.food_name,
             brand_name: item.brand_name
         }));
+
       
         
         setFoodItems(foodNames);
