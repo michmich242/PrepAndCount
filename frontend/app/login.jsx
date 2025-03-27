@@ -20,7 +20,7 @@ export default function LoginScreen({ navigation }) {
     }
 
     // Simulate login logic (e.g., API call)
-    if (email === 'test@example.com' && password === 'password') {
+    if (email.length != 0 && password.length != 0) {
       Alert.alert('Success', 'Login successful!');
       navigation.navigate('Home'); // Navigate to Home after successful login
     } else {
