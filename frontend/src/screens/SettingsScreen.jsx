@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Switch, TouchableOpacity, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { DMContext } from '../../app/_layout';
-import { useContext } from "react";
+import { useContext } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useMacros } from '../../hooks/macroContext';
@@ -24,7 +24,18 @@ export default function SettingsScreen() {
       'Are you sure you want to reset all settings?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Reset', style: 'destructive', onPress: () => dispatch({type: 'RESET'})},
+        { text: 'Reset', style: 'destructive', onPress: () => dispatch({ type: 'RESET' }) },
+      ]
+    );
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to log out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Logout', style: 'destructive', onPress: () => navigation.replace('Login') }, // Navigate to Login screen
       ]
     );
   };
@@ -32,12 +43,10 @@ export default function SettingsScreen() {
   return (
     <View style={[styles.container, { backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff' }]}>
       <Text style={[styles.header, { color: darkModeEnabled ? '#fff' : '#333' }]}>Settings</Text>
-      
+
       {/* Set Meal Times */}
       <TouchableOpacity onPress={() => navigation.navigate('Change Meal Times')} style={styles.setting}>
-        <Text
-          style={[styles.settingText, { color: darkModeEnabled ? '#fff' : '#333' }]}
-        >
+        <Text style={[styles.settingText, { color: darkModeEnabled ? '#fff' : '#333' }]}>
           Set Meal Times
         </Text>
         <Ionicons
@@ -47,12 +56,11 @@ export default function SettingsScreen() {
           style={{ alignSelf: 'center', marginRight: 10 }}
         />
       </TouchableOpacity>
+
       {/* Set Height and Weight */}
       <TouchableOpacity onPress={() => navigation.navigate('Configure Height and Weight')} style={styles.setting}>
-        <Text
-          style={[styles.settingText, { color: darkModeEnabled ? '#fff' : '#333' }]}
-        >
-         Configure Height and Weight
+        <Text style={[styles.settingText, { color: darkModeEnabled ? '#fff' : '#333' }]}>
+          Configure Height and Weight
         </Text>
         <Ionicons
           name="caret-forward-outline"
@@ -61,12 +69,11 @@ export default function SettingsScreen() {
           style={{ alignSelf: 'center', marginRight: 10 }}
         />
       </TouchableOpacity>
+
       {/* Set Food Preferences */}
       <TouchableOpacity onPress={() => navigation.navigate('Set Food Preferences')} style={styles.setting}>
-        <Text
-          style={[styles.settingText, { color: darkModeEnabled ? '#fff' : '#333' }]}
-        >
-         Set Food Preferences
+        <Text style={[styles.settingText, { color: darkModeEnabled ? '#fff' : '#333' }]}>
+          Set Food Preferences
         </Text>
         <Ionicons
           name="caret-forward-outline"
@@ -75,9 +82,12 @@ export default function SettingsScreen() {
           style={{ alignSelf: 'center', marginRight: 10 }}
         />
       </TouchableOpacity>
+
       {/* Notifications Setting */}
       <View style={[styles.setting, { backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff' }]}>
-        <Text style={[styles.settingText, { color: darkModeEnabled ? "#fff" : "#333" }]}>Enable Notifications</Text>
+        <Text style={[styles.settingText, { color: darkModeEnabled ? '#fff' : '#333' }]}>
+          Enable Notifications
+        </Text>
         <Switch
           value={notificationsEnabled}
           onValueChange={toggleNotifications}
@@ -87,20 +97,27 @@ export default function SettingsScreen() {
       </View>
 
       {/* Dark Mode Setting */}
-      <View style={[styles.setting, { backgroundColor: darkModeEnabled ? "#1c1b1a" : "#fff" }]}>
-        <Text style={[styles.settingText, { color: darkModeEnabled ? "#fff" : "#333" }]}>Enable Dark Mode</Text>
+      <View style={[styles.setting, { backgroundColor: darkModeEnabled ? '#1c1b1a' : '#fff' }]}>
+        <Text style={[styles.settingText, { color: darkModeEnabled ? '#fff' : '#333' }]}>
+          Enable Dark Mode
+        </Text>
         <Switch
           value={darkModeEnabled}
           onValueChange={toggleDarkMode}
           trackColor={{ false: '#ccc', true: '#007aff' }}
           thumbColor={darkModeEnabled ? '#007aff' : '#f4f3f4'}
         />
-        <StatusBar style={darkModeEnabled ? "light" : "dark"} />
+        <StatusBar style={darkModeEnabled ? 'light' : 'dark'} />
       </View>
 
       {/* Reset Settings Button */}
       <TouchableOpacity style={styles.resetButton} onPress={resetApp}>
         <Text style={styles.resetButtonText}>Reset Settings</Text>
+      </TouchableOpacity>
+
+      {/* Logout Button */}
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Text style={styles.logoutButtonText}>Logout</Text>
       </TouchableOpacity>
     </View>
   );
@@ -136,6 +153,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   resetButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  logoutButton: {
+    marginTop: 20,
+    padding: 15,
+    backgroundColor: '#007aff',
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  logoutButtonText: {
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
