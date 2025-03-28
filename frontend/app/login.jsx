@@ -42,6 +42,8 @@ export default function LoginScreen({ navigation }) {
         const data = await response.json();
         console.log(email, password);
     
+
+        
         if (response.status === 200) {
           Alert.alert('Success', data.message);
           navigation.navigate('Home');

@@ -9,13 +9,15 @@ import {
   ScrollView,
 } from 'react-native';
 
+
+
 export default function RegisterScreen({ navigation }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (!name || !email || !password || !confirmPassword) {
       Alert.alert('Error', 'Please fill in all fields.');
       return;
@@ -26,8 +28,34 @@ export default function RegisterScreen({ navigation }) {
       return;
     }
 
-    Alert.alert('Success', 'Registration successful!');
-    navigation.navigate('Home'); // Navigate to Home after registration
+    try{
+      const response = await fetch(`http://10.0.2.2:5000/register`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json',},
+        body: JSON.stringify({
+          username: name,
+          email,
+          password,
+        }),
+
+      });
+
+      const data = await response.json();
+
+      if(response.status == 201){
+        Alert.alert(data.message);
+        navigation.navigate('Home');
+      }
+      else{
+        Alert.alert(`Error`, data.message);
+      }
+
+    }
+    catch(error){
+      console.error(error);
+      Alert.alert('Error', 'Unable to connect to the server');
+    }
+
   };
 
   return (
