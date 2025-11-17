@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { OpenAI } from 'openai';
+import crypto from 'crypto';
 
 dotenv.config();
 
@@ -10,6 +11,8 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
 const PORT = parseInt(process.env.PORT || '5000', 10);
+const FATSECRET_CLIENT_ID = process.env.FATSECRET_CLIENT_ID || '';
+const FATSECRET_CLIENT_SECRET = process.env.FATSECRET_CLIENT_SECRET || '';
 
 // Helpers
 function toNumber(x, fallback = 0) {
@@ -109,6 +112,132 @@ No commentary, no markdown. Strict JSON only.
 `.trim();
 }
 
+// --- FatSecret integration (optional) ---
+let fatSecretTokenCache = { token: '', expiresAt: 0 };
+
+async function getFatSecretToken() {
+  if (!FATSECRET_CLIENT_ID || !FATSECRET_CLIENT_SECRET) return null;
+  const now = Date.now();
+  if (fatSecretTokenCache.token && fatSecretTokenCache.expiresAt > now + 60_000) {
+    return fatSecretTokenCache.token;
+  }
+  const credentials = Buffer.from(`${FATSECRET_CLIENT_ID}:${FATSECRET_CLIENT_SECRET}`).toString('base64');
+  const resp = await fetch('https://oauth.fatsecret.com/connect/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': `Basic ${credentials}`
+    },
+    body: new URLSearchParams({
+      grant_type: 'client_credentials',
+      scope: 'premier'
+    }).toString()
+  });
+  if (!resp.ok) return null;
+  const data = await resp.json();
+  fatSecretTokenCache = {
+    token: data.access_token || '',
+    expiresAt: now + ((data.expires_in || 3600) * 1000)
+  };
+  return fatSecretTokenCache.token;
+}
+
+async function fatSecretSearchFood(name, token) {
+  const params = new URLSearchParams({
+    search_expression: name,
+    max_results: '1',
+    region: 'US',
+    language: 'en',
+    format: 'json'
+  });
+  const url = `https://platform.fatsecret.com/rest/foods/search/v3?${params.toString()}`;
+  const resp = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  if (!resp.ok) return null;
+  const data = await resp.json();
+  try {
+    const first = data.foods_search?.results?.foods?.[0];
+    return first || null;
+  } catch {
+    return null;
+  }
+}
+
+function extractMacrosFromFood(food) {
+  // Different endpoints return different shapes; try to normalize
+  const serving = food?.servings?.serving?.[0] || food?.servings?.serving || {};
+  const calories = toNumber(serving.calories);
+  const protein = toNumber(serving.protein);
+  const carbs = toNumber(serving.carbohydrate);
+  const fat = toNumber(serving.fat);
+  if (calories || protein || carbs || fat) {
+    return { calories, protein, carbs, fat };
+  }
+  return null;
+}
+
+async function enrichPlanWithNutrition(plan) {
+  const token = await getFatSecretToken();
+  if (!token) return { planWithNutrition: plan, totalsByDay: {} };
+
+  const result = {};
+  const totalsByDay = {};
+  const dayKeys = Object.keys(plan || {});
+
+  for (const day of dayKeys) {
+    const meals = plan[day] || {};
+    const keys = ['breakfast', 'lunch', 'dinner'];
+    const snacks = Array.isArray(meals.snacks) ? meals.snacks.slice(0, 2) : [];
+
+    result[day] = { breakfast: null, lunch: null, dinner: null, snacks: [] };
+    const dayTotals = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+
+    // Helper to process one item
+    const processItem = async (label, name) => {
+      if (!name) return null;
+      const food = await fatSecretSearchFood(name, token);
+      const macros = extractMacrosFromFood(food);
+      if (macros) {
+        dayTotals.calories += macros.calories;
+        dayTotals.protein += macros.protein;
+        dayTotals.carbs += macros.carbs;
+        dayTotals.fat += macros.fat;
+      }
+      return { name, macros };
+    };
+
+    for (const k of keys) {
+      try {
+        result[day][k] = await processItem(k, meals[k]);
+      } catch {
+        result[day][k] = { name: meals[k] || null, macros: null };
+      }
+    }
+    const snackResults = [];
+    for (const s of snacks) {
+      try {
+        snackResults.push(await processItem('snack', s));
+      } catch {
+        snackResults.push({ name: s, macros: null });
+      }
+    }
+    result[day].snacks = snackResults;
+    totalsByDay[day] = {
+      calories: Math.round(dayTotals.calories),
+      protein: Math.round(dayTotals.protein),
+      carbs: Math.round(dayTotals.carbs),
+      fat: Math.round(dayTotals.fat)
+    };
+  }
+
+  return { planWithNutrition: result, totalsByDay };
+}
+
 app.post('/api/generate-meal-plan', async (req, res) => {
   try {
     const {
@@ -177,6 +306,69 @@ app.post('/api/generate-meal-plan', async (req, res) => {
       macros: targets.macros,
       plan
       // NOTE: FatSecret nutrition enrichment will be added in a follow-up step
+    });
+  } catch (err) {
+    const message = err?.message || 'Unexpected error';
+    return res.status(500).json({ message });
+  }
+});
+
+app.post('/api/generate-meal-plan/enriched', async (req, res) => {
+  try {
+    const baseResp = await (async () => {
+      // Reuse computation and OpenAI call logic by invoking the main handler body
+      const {
+        fitnessGoal = 'General Health',
+        heightCm,
+        weightKg,
+        age,
+        gender = 'Other',
+        activityLevel = 'Sedentary',
+        likes = '',
+        dislikes = ''
+      } = req.body || {};
+
+      if (!heightCm || !weightKg || !age) {
+        return { status: 400, body: { message: 'heightCm, weightKg, and age are required' } };
+      }
+      const targets = computeTargets({ fitnessGoal, gender, weightKg, heightCm, age, activityLevel });
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      const prompt = buildPrompt({
+        fitnessGoal, heightCm, weightKg, age, gender, activityLevel,
+        calorieGoal: targets.calorieGoal, macros: targets.macros, likes, dislikes
+      });
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        temperature: 0.7,
+        response_format: { type: 'json_object' },
+        messages: [
+          { role: 'system', content: 'You are a helpful assistant that returns strict JSON.' },
+          { role: 'user', content: prompt }
+        ]
+      });
+      const content = completion.choices?.[0]?.message?.content || '{}';
+      let plan;
+      try {
+        plan = JSON.parse(content);
+      } catch {
+        const start = content.indexOf('{');
+        const end = content.lastIndexOf('}');
+        plan = JSON.parse(content.slice(start, end + 1));
+      }
+      return { status: 200, body: { targets, plan } };
+    })();
+
+    if (baseResp.status !== 200) {
+      return res.status(baseResp.status).json(baseResp.body);
+    }
+
+    const { targets, plan } = baseResp.body;
+    const { planWithNutrition, totalsByDay } = await enrichPlanWithNutrition(plan);
+    return res.json({
+      calorieGoal: targets.calorieGoal,
+      macros: targets.macros,
+      plan: planWithNutrition,
+      totalsByDay
     });
   } catch (err) {
     const message = err?.message || 'Unexpected error';
