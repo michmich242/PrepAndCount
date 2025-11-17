@@ -85,7 +85,7 @@ function computeTargets({ fitnessGoal, gender, weightKg, heightCm, age, activity
 }
 
 function buildPrompt(p) {
-  const { fitnessGoal, heightCm, weightKg, age, gender, activityLevel, calorieGoal, macros, likes, dislikes } = p;
+  const { fitnessGoal, heightCm, weightKg, age, gender, activityLevel, calorieGoal, macros, likes, dislikes, days = 7 } = p;
   return `
 You are a certified nutritionist. Based on the following user information, create a detailed 7-day meal plan.
 
@@ -101,17 +101,13 @@ User Profile:
 - Likes: ${likes || 'N/A'}
 - Dislikes/Restrictions: ${dislikes || 'N/A'}
 
-Create a 7-day meal plan with specific meal names for breakfast, lunch, dinner, and 1-2 snacks per day. Return ONLY valid JSON with this exact structure and property names:
-{
-  "day1": { "breakfast": "meal name", "lunch": "meal name", "dinner": "meal name", "snacks": ["snack1","snack2"] },
-  "day2": { ... },
-  "day3": { ... },
-  "day4": { ... },
-  "day5": { ... },
-  "day6": { ... },
-  "day7": { ... }
-}
-No commentary, no markdown. Strict JSON only.
+Create a ${days}-day meal plan with specific meal names for breakfast, lunch, dinner, and 1-2 snacks per day.
+Return ONLY valid JSON with keys "day1" through "day${days}" and for each day include exactly:
+- "breakfast": string
+- "lunch": string
+- "dinner": string
+- "snacks": array of 1-2 strings
+No extra commentary, no markdown. Strict JSON only.
 `.trim();
 }
 
@@ -292,6 +288,9 @@ app.post('/api/generate-meal-plan', async (req, res) => {
 
     // Fast path to isolate OpenAI issues: skip AI and return mock plan
     const testFlag = String(req.query.test || req.query.skipAi || '').toLowerCase();
+    const daysParam = Math.max(1, Math.min(7, Number(req.query.days) || 7));
+    const timeoutMs = Math.max(10000, Math.min(90000, Number(req.query.timeoutMs) || 45000));
+    const modelParam = String(req.query.model || 'gpt-4o-mini');
     if (testFlag === '1' || testFlag === 'true') {
       const mockPlan = {
         day1: {
@@ -305,7 +304,15 @@ app.post('/api/generate-meal-plan', async (req, res) => {
       return res.json({
         calorieGoal: targets.calorieGoal,
         macros: targets.macros,
-        plan: mockPlan
+        plan: daysParam === 1 ? mockPlan : {
+          ...mockPlan,
+          day2: mockPlan.day1,
+          day3: mockPlan.day1,
+          day4: mockPlan.day1,
+          day5: mockPlan.day1,
+          day6: mockPlan.day1,
+          day7: mockPlan.day1
+        }
       });
     }
 
@@ -325,12 +332,13 @@ app.post('/api/generate-meal-plan', async (req, res) => {
       calorieGoal: targets.calorieGoal,
       macros: targets.macros,
       likes,
-      dislikes
+      dislikes,
+      days: daysParam
     });
 
     const completion = await withTimeout(
       openai.chat.completions.create({
-        model: 'gpt-4o-mini',
+        model: modelParam,
         temperature: 0.7,
         response_format: { type: 'json_object' },
         messages: [
@@ -338,7 +346,7 @@ app.post('/api/generate-meal-plan', async (req, res) => {
           { role: 'user', content: prompt }
         ]
       }),
-      45000,
+      timeoutMs,
       'OpenAI request timed out'
     );
 
@@ -354,6 +362,18 @@ app.post('/api/generate-meal-plan', async (req, res) => {
         plan = JSON.parse(content.slice(start, end + 1));
       } else {
         throw new Error('Failed to parse OpenAI JSON response');
+      }
+    }
+
+    // If the model returned all 7 days but a smaller number was requested, trim it
+    if (daysParam < 7) {
+      const trimmed = {};
+      for (let i = 1; i <= daysParam; i++) {
+        const key = `day${i}`;
+        if (plan[key]) trimmed[key] = plan[key];
+      }
+      if (Object.keys(trimmed).length > 0) {
+        plan = trimmed;
       }
     }
 

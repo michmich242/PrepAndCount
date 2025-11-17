@@ -29,6 +29,7 @@ export default function MealPlannerScreen() {
   const [result, setResult] = useState(null);
   const [testMode, setTestMode] = useState(false);
   const [pingStatus, setPingStatus] = useState('');
+  const [oneDay, setOneDay] = useState(false);
 
   const canSubmit = useMemo(() => {
     return (
@@ -45,7 +46,10 @@ export default function MealPlannerScreen() {
     setError('');
     setResult(null);
     try {
-      const qs = testMode ? '?test=1' : '';
+      const params = new URLSearchParams();
+      if (testMode) params.set('test', '1');
+      params.set('days', oneDay ? '1' : '7');
+      const qs = params.toString() ? `?${params.toString()}` : '';
       const res = await fetch(`${API_URL}/api/generate-meal-plan${qs}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -83,6 +87,10 @@ export default function MealPlannerScreen() {
       <View style={styles.testRow}>
         <Text style={styles.label}>Test mode (skip AI)</Text>
         <Switch value={testMode} onValueChange={setTestMode} />
+      </View>
+      <View style={styles.testRow}>
+        <Text style={styles.label}>Quick (1 day)</Text>
+        <Switch value={oneDay} onValueChange={setOneDay} />
       </View>
       <View style={[styles.testRow, { marginTop: 6 }]}>
         <TouchableOpacity style={[styles.button, { paddingVertical: 10 }]} onPress={checkConnection}>
