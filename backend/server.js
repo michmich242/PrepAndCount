@@ -118,6 +118,19 @@ app.get('/health', (_req, res) => {
   res.json({ ok: true, env: NODE_ENV });
 });
 
+// Friendly root route for browser checks
+app.get('/', (_req, res) => {
+  res.json({
+    ok: true,
+    message: 'PrepAndCount backend is running',
+    endpoints: [
+      'GET /health',
+      'POST /api/generate-meal-plan',
+      'POST /api/generate-meal-plan/enriched'
+    ]
+  });
+});
+
 // --- FatSecret integration (optional) ---
 let fatSecretTokenCache = { token: '', expiresAt: 0 };
 
