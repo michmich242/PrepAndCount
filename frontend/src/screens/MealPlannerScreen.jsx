@@ -28,6 +28,7 @@ export default function MealPlannerScreen() {
   const [error, setError] = useState('');
   const [result, setResult] = useState(null);
   const [testMode, setTestMode] = useState(false);
+  const [pingStatus, setPingStatus] = useState('');
 
   const canSubmit = useMemo(() => {
     return (
@@ -63,9 +64,32 @@ export default function MealPlannerScreen() {
     }
   };
 
+  const checkConnection = async () => {
+    try {
+      setPingStatus('Checking...');
+      const r = await fetch(`${API_URL}/health`);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const j = await r.json();
+      setPingStatus(`OK (${j?.env || 'unknown'})`);
+    } catch (e) {
+      setPingStatus(`Failed: ${e?.message || 'error'}`);
+    }
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Meal Planner</Text>
+      <Text style={styles.small}>API: {API_URL}</Text>
+      <View style={styles.testRow}>
+        <Text style={styles.label}>Test mode (skip AI)</Text>
+        <Switch value={testMode} onValueChange={setTestMode} />
+      </View>
+      <View style={[styles.testRow, { marginTop: 6 }]}>
+        <TouchableOpacity style={[styles.button, { paddingVertical: 10 }]} onPress={checkConnection}>
+          <Text style={styles.buttonText}>Check connection</Text>
+        </TouchableOpacity>
+        {!!pingStatus && <Text style={[styles.small, { marginLeft: 10 }]}>{pingStatus}</Text>}
+      </View>
 
       <Text style={styles.label}>Fitness Goal</Text>
       <View style={styles.rowWrap}>
@@ -293,5 +317,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between'
+  },
+  small: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4
   }
 });
