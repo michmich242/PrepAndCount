@@ -87,7 +87,7 @@ function computeTargets({ fitnessGoal, gender, weightKg, heightCm, age, activity
 function buildPrompt(p) {
   const { fitnessGoal, heightCm, weightKg, age, gender, activityLevel, calorieGoal, macros, likes, dislikes, days = 7 } = p;
   return `
-You are a certified nutritionist. Based on the following user information, create a detailed 7-day meal plan.
+You are a certified nutritionist. Create a practical, realistic meal plan tailored to the user profile below.
 
 User Profile:
 - Fitness Goal: ${fitnessGoal}
@@ -101,13 +101,20 @@ User Profile:
 - Likes: ${likes || 'N/A'}
 - Dislikes/Restrictions: ${dislikes || 'N/A'}
 
-Create a ${days}-day meal plan with specific meal names for breakfast, lunch, dinner, and 1-2 snacks per day.
-Return ONLY valid JSON with keys "day1" through "day${days}" and for each day include exactly:
+Requirements:
+- Create a ${days}-day plan with 3 meals (breakfast, lunch, dinner) and 1–2 snacks per day.
+- Respect dislikes/restrictions strictly. Prefer items from likes where appropriate.
+- Keep dishes simple, common, and grocery-friendly for easy lookup (no brand names, no emojis).
+- Avoid repetition across consecutive days; include reasonable variety (proteins, grains, vegetables, fruits).
+- Portion assumptions should be implicit; DO NOT include measurements or macros in the names.
+
+Output:
+Return ONLY valid JSON with keys "day1" through "day${days}". For each day include exactly:
 - "breakfast": string
 - "lunch": string
 - "dinner": string
 - "snacks": array of 1-2 strings
-No extra commentary, no markdown. Strict JSON only.
+No extra commentary, no markdown. Strict JSON only with the exact keys above.
 `.trim();
 }
 
