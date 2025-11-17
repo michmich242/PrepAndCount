@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, Switch } from 'react-native';
 import API_URL from '../../config/config.js';
+import { useNavigation } from '@react-navigation/native';
 
 const goals = ['Weight Loss', 'Muscle Gain', 'Maintenance', 'General Health'];
 const genders = ['Male', 'Female', 'Other'];
@@ -13,6 +14,7 @@ const activityLevels = [
 ];
 
 export default function MealPlannerScreen() {
+  const navigation = useNavigation();
   const [form, setForm] = useState({
     fitnessGoal: 'General Health',
     heightCm: '',
@@ -208,8 +210,19 @@ export default function MealPlannerScreen() {
 
           <Text style={[styles.sectionTitle, { marginTop: 16 }]}>7-Day Plan</Text>
           {Object.entries(result.plan || {}).map(([day, meals]) => (
-            <View key={day} style={styles.dayBlock}>
-              <Text style={styles.dayTitle}>{String(day).toUpperCase()}</Text>
+            <TouchableOpacity
+              key={day}
+              style={styles.dayBlock}
+              onPress={() =>
+                navigation.navigate('Meal Plan Day', {
+                  dayKey: day,
+                  meals,
+                  calorieGoal: result.calorieGoal,
+                  macros: result.macros
+                })
+              }
+            >
+              <Text style={styles.dayTitle}>{String(day).toUpperCase()} (tap for details)</Text>
               {['breakfast', 'lunch', 'dinner'].map(mealKey => (
                 meals?.[mealKey] ? (
                   <Text key={mealKey} style={styles.mealText}>
@@ -220,7 +233,7 @@ export default function MealPlannerScreen() {
               {Array.isArray(meals?.snacks) && meals.snacks.length > 0 && (
                 <Text style={styles.mealText}>Snacks: {meals.snacks.join(', ')}</Text>
               )}
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
       )}

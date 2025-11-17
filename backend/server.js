@@ -399,6 +399,51 @@ app.post('/api/generate-meal-plan', async (req, res) => {
   }
 });
 
+app.post('/api/recipe-instructions', async (req, res) => {
+  try {
+    const { mealName } = req.body || {};
+    if (!mealName) return res.status(400).json({ message: 'mealName is required' });
+    const openaiKey = process.env.OPENAI_API_KEY;
+    if (!openaiKey) return res.status(500).json({ message: 'OPENAI_API_KEY is not configured on the server' });
+    const openai = new OpenAI({ apiKey: openaiKey });
+    const prompt = `
+You are a chef. Provide concise home-cook instructions for the dish: "${mealName}".
+Constraints:
+- 4–6 short numbered steps
+- Common ingredients and simple techniques only
+- No quantities, calories, or macros
+- No extra commentary or markdown
+Return STRICT JSON: { "steps": ["step 1", "step 2", ...] }`.trim();
+    const completion = await withTimeout(
+      openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        temperature: 0.4,
+        response_format: { type: 'json_object' },
+        messages: [
+          { role: 'system', content: 'You return strict JSON only.' },
+          { role: 'user', content: prompt }
+        ]
+      }),
+      25000,
+      'OpenAI request timed out'
+    );
+    const content = completion.choices?.[0]?.message?.content || '{}';
+    let data;
+    try {
+      data = JSON.parse(content);
+    } catch {
+      const start = content.indexOf('{');
+      const end = content.lastIndexOf('}');
+      data = JSON.parse(content.slice(start, end + 1));
+    }
+    return res.json({ steps: Array.isArray(data.steps) ? data.steps.slice(0, 8) : [] });
+  } catch (err) {
+    const message = err?.message || 'Unexpected error';
+    const status = /timed out/i.test(message) ? 504 : 500;
+    return res.status(status).json({ message });
+  }
+});
+
 app.post('/api/generate-meal-plan/enriched', async (req, res) => {
   try {
     const startedAt = Date.now();
