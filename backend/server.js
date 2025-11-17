@@ -13,6 +13,7 @@ app.use(express.json());
 const PORT = parseInt(process.env.PORT || '5000', 10);
 const FATSECRET_CLIENT_ID = process.env.FATSECRET_CLIENT_ID || '';
 const FATSECRET_CLIENT_SECRET = process.env.FATSECRET_CLIENT_SECRET || '';
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // Helpers
 function toNumber(x, fallback = 0) {
@@ -111,6 +112,11 @@ Create a 7-day meal plan with specific meal names for breakfast, lunch, dinner, 
 No commentary, no markdown. Strict JSON only.
 `.trim();
 }
+
+// Simple health check to verify connectivity from device
+app.get('/health', (_req, res) => {
+  res.json({ ok: true, env: NODE_ENV });
+});
 
 // --- FatSecret integration (optional) ---
 let fatSecretTokenCache = { token: '', expiresAt: 0 };
@@ -238,8 +244,20 @@ async function enrichPlanWithNutrition(plan) {
   return { planWithNutrition: result, totalsByDay };
 }
 
+// Timeout helper to avoid hanging on upstream calls
+function withTimeout(promise, ms, onTimeoutMessage = 'Operation timed out') {
+  let timeoutId;
+  const timeoutPromise = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(onTimeoutMessage)), ms);
+  });
+  return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timeoutId));
+}
+
 app.post('/api/generate-meal-plan', async (req, res) => {
   try {
+    const startedAt = Date.now();
+    const reqId = Math.random().toString(36).slice(2, 10);
+    console.log(`[meal-plan][${reqId}] start`);
     const {
       fitnessGoal = 'General Health',
       heightCm,
@@ -276,15 +294,19 @@ app.post('/api/generate-meal-plan', async (req, res) => {
       dislikes
     });
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      temperature: 0.7,
-      response_format: { type: 'json_object' },
-      messages: [
-        { role: 'system', content: 'You are a helpful assistant that returns strict JSON.' },
-        { role: 'user', content: prompt }
-      ]
-    });
+    const completion = await withTimeout(
+      openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        temperature: 0.7,
+        response_format: { type: 'json_object' },
+        messages: [
+          { role: 'system', content: 'You are a helpful assistant that returns strict JSON.' },
+          { role: 'user', content: prompt }
+        ]
+      }),
+      45000,
+      'OpenAI request timed out'
+    );
 
     const content = completion.choices?.[0]?.message?.content || '{}';
     let plan;
@@ -307,14 +329,20 @@ app.post('/api/generate-meal-plan', async (req, res) => {
       plan
       // NOTE: FatSecret nutrition enrichment will be added in a follow-up step
     });
+    console.log(`[meal-plan][${reqId}] ok in ${Date.now() - startedAt}ms`);
   } catch (err) {
+    console.error('[meal-plan] error', err);
     const message = err?.message || 'Unexpected error';
-    return res.status(500).json({ message });
+    const status = /timed out/i.test(message) ? 504 : 500;
+    return res.status(status).json({ message });
   }
 });
 
 app.post('/api/generate-meal-plan/enriched', async (req, res) => {
   try {
+    const startedAt = Date.now();
+    const reqId = Math.random().toString(36).slice(2, 10);
+    console.log(`[meal-plan-enriched][${reqId}] start`);
     const baseResp = await (async () => {
       // Reuse computation and OpenAI call logic by invoking the main handler body
       const {
@@ -337,15 +365,19 @@ app.post('/api/generate-meal-plan/enriched', async (req, res) => {
         fitnessGoal, heightCm, weightKg, age, gender, activityLevel,
         calorieGoal: targets.calorieGoal, macros: targets.macros, likes, dislikes
       });
-      const completion = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        temperature: 0.7,
-        response_format: { type: 'json_object' },
-        messages: [
-          { role: 'system', content: 'You are a helpful assistant that returns strict JSON.' },
-          { role: 'user', content: prompt }
-        ]
-      });
+      const completion = await withTimeout(
+        openai.chat.completions.create({
+          model: 'gpt-4o-mini',
+          temperature: 0.7,
+          response_format: { type: 'json_object' },
+          messages: [
+            { role: 'system', content: 'You are a helpful assistant that returns strict JSON.' },
+            { role: 'user', content: prompt }
+          ]
+        }),
+        45000,
+        'OpenAI request timed out'
+      );
       const content = completion.choices?.[0]?.message?.content || '{}';
       let plan;
       try {
@@ -364,15 +396,19 @@ app.post('/api/generate-meal-plan/enriched', async (req, res) => {
 
     const { targets, plan } = baseResp.body;
     const { planWithNutrition, totalsByDay } = await enrichPlanWithNutrition(plan);
-    return res.json({
+    const payload = {
       calorieGoal: targets.calorieGoal,
       macros: targets.macros,
       plan: planWithNutrition,
       totalsByDay
-    });
+    };
+    console.log(`[meal-plan-enriched][${reqId}] ok in ${Date.now() - startedAt}ms`);
+    return res.json(payload);
   } catch (err) {
+    console.error('[meal-plan-enriched] error', err);
     const message = err?.message || 'Unexpected error';
-    return res.status(500).json({ message });
+    const status = /timed out/i.test(message) ? 504 : 500;
+    return res.status(status).json({ message });
   }
 });
 
