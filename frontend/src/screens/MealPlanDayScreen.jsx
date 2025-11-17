@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { callSearch, callFindByID } from '../../api/callAPI';
 import API_URL from '../../config/config';
 
 export default function MealPlanDayScreen({ route }) {
@@ -25,34 +24,15 @@ export default function MealPlanDayScreen({ route }) {
     const fetchMacros = async () => {
       try {
         setLoading(true);
-        const out = {};
-        for (const it of items) {
-          try {
-            const search = await callSearch(it.name, 0);
-            const first = Array.isArray(search?.[0]?.foods) ? search[0].foods[0] : null;
-            const foodId = first?.food_id || first?.food_id?.toString?.();
-            if (!foodId) {
-              out[it.key] = null;
-              continue;
-            }
-            const details = await callFindByID(String(foodId));
-            const servings = details?.[2];
-            const serving = Array.isArray(servings?.serving) ? servings.serving[0] : servings?.serving || null;
-            if (serving) {
-              out[it.key] = {
-                calories: Number(serving.calories) || 0,
-                protein: Number(serving.protein) || 0,
-                carbs: Number(serving.carbohydrate) || 0,
-                fat: Number(serving.fat) || 0
-              };
-            } else {
-              out[it.key] = null;
-            }
-          } catch {
-            out[it.key] = null;
-          }
-        }
-        if (!cancelled) setMacrosByItem(out);
+        const payload = { items: items.map(it => ({ key: it.key, name: it.name })) };
+        const resp = await fetch(`${API_URL}/api/nutrition/estimate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data = await resp.json();
+        if (!cancelled) setMacrosByItem(data.byKey || {});
       } catch (e) {
         if (!cancelled) setError(e?.message || 'Failed to fetch macros');
       } finally {

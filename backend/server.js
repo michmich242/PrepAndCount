@@ -444,6 +444,49 @@ Return STRICT JSON: { "steps": ["step 1", "step 2", ...] }`.trim();
   }
 });
 
+app.post('/api/nutrition/estimate', async (req, res) => {
+  try {
+    const items = Array.isArray(req.body?.items) ? req.body.items : [];
+    if (items.length === 0) {
+      return res.json({ byKey: {}, totals: { calories: 0, protein: 0, carbs: 0, fat: 0 } });
+    }
+    const token = await getFatSecretToken();
+    const byKey = {};
+    const totals = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+    if (!token) {
+      // FatSecret not configured; return null macros for each item
+      for (const it of items) {
+        byKey[it.key] = null;
+      }
+      return res.json({ byKey, totals });
+    }
+    for (const it of items) {
+      try {
+        const food = await fatSecretSearchFood(String(it.name || ''), token);
+        const macros = extractMacrosFromFood(food);
+        byKey[it.key] = macros || null;
+        if (macros) {
+          totals.calories += macros.calories || 0;
+          totals.protein += macros.protein || 0;
+          totals.carbs += macros.carbs || 0;
+          totals.fat += macros.fat || 0;
+        }
+      } catch {
+        byKey[it.key] = null;
+      }
+    }
+    totals.calories = Math.round(totals.calories);
+    totals.protein = Math.round(totals.protein);
+    totals.carbs = Math.round(totals.carbs);
+    totals.fat = Math.round(totals.fat);
+    return res.json({ byKey, totals });
+  } catch (err) {
+    const message = err?.message || 'Unexpected error';
+    const status = /timed out/i.test(message) ? 504 : 500;
+    return res.status(status).json({ message });
+  }
+});
+
 app.post('/api/generate-meal-plan/enriched', async (req, res) => {
   try {
     const startedAt = Date.now();
