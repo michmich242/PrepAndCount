@@ -21,6 +21,7 @@ import { MealTimesContext } from '../hooks/mealTimes';
 import { MacroProvider } from '../hooks/macroContext';
 import { Settings } from 'react-native';
 import FitnessSettingsScreen from '../src/screens/FitnessSettingsScreen';
+import MealPlannerScreen from '../src/screens/MealPlannerScreen';
 
 
 
@@ -126,6 +127,8 @@ export default function RootLayout() {
                   iconName = focused ? 'cart' : 'cart-outline';
                 } else if (route.name === 'Add Food') {
                   iconName = focused ? 'add-circle' : 'add-circle-outline';
+                } else if (route.name === 'Meal Planner') {
+                  iconName = focused ? 'restaurant' : 'restaurant-outline';
                 } else if (route.name === 'Settings') {
                   iconName = focused ? 'settings' : 'settings-outline';
                 }
@@ -145,6 +148,7 @@ export default function RootLayout() {
             <Tab.Screen name="Home" component={HomeScreen} />
             <Tab.Screen name="Grocery List" component={GroceryListScreen} />
             <Tab.Screen name="Add Food" component={AddFoodStackScreen} />
+            <Tab.Screen name="Meal Planner" component={MealPlannerScreen} />
             <Tab.Screen name="Settings" component={SettingsStackScreen} />
           </Tab.Navigator>
           <StatusBar style="auto" />
