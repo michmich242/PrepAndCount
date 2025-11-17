@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, Switch } from 'react-native';
+import API_URL from '../../config/config.js';
 
 const goals = ['Weight Loss', 'Muscle Gain', 'Maintenance', 'General Health'];
 const genders = ['Male', 'Female', 'Other'];
@@ -10,8 +11,6 @@ const activityLevels = [
   'Very Active',
   'Extra Active'
 ];
-
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.200.237.49:5000';
 
 export default function MealPlannerScreen() {
   const [form, setForm] = useState({
@@ -28,6 +27,7 @@ export default function MealPlannerScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState(null);
+  const [testMode, setTestMode] = useState(false);
 
   const canSubmit = useMemo(() => {
     return (
@@ -44,7 +44,8 @@ export default function MealPlannerScreen() {
     setError('');
     setResult(null);
     try {
-      const res = await fetch(`${API_URL}/api/generate-meal-plan`, {
+      const qs = testMode ? '?test=1' : '';
+      const res = await fetch(`${API_URL}/api/generate-meal-plan${qs}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
@@ -153,6 +154,11 @@ export default function MealPlannerScreen() {
         placeholder="Dislikes, allergies"
         multiline
       />
+
+      <View style={styles.testRow}>
+        <Text style={styles.label}>Test mode (skip AI)</Text>
+        <Switch value={testMode} onValueChange={setTestMode} />
+      </View>
 
       <TouchableOpacity style={[styles.button, !canSubmit && styles.buttonDisabled]} disabled={!canSubmit || loading} onPress={submit}>
         {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Generate Meal Plan</Text>}
@@ -281,5 +287,11 @@ const styles = StyleSheet.create({
   },
   mealText: {
     marginTop: 2
+  },
+  testRow: {
+    marginTop: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
   }
 });
