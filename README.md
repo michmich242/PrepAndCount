@@ -44,3 +44,40 @@ Welcome to the Macro & Fitness Tracker with Meal Prepper App! This is a full-sta
 
 **Disclaimer**: Android SDK or Xcode is needed for the phone to pop up
 
+
+## Environment configuration (do NOT commit real keys)
+
+Frontend (Expo):
+- Create `frontend/.env`:
+  ```
+  EXPO_PUBLIC_API_URL=http://YOUR_MACHINE_IP:5000
+  ```
+  Replace `YOUR_MACHINE_IP` with the LAN IP your device can reach. Restart Expo after changes.
+
+Backend:
+- Create `backend/.env`:
+  ```
+  OPENAI_API_KEY=sk-...
+  PORT=5000
+  # Optional FatSecret (enables nutrition lookup on server)
+  FATSECRET_CLIENT_ID=
+  FATSECRET_CLIENT_SECRET=
+  ```
+- The repo’s `.gitignore` already excludes `frontend/.env` and `backend/.env`.
+
+## Branch, push and merge
+
+```bash
+# from repo root
+git checkout feature/meal-planner
+git status
+# review changes, ensure no .env files are staged
+git push -u origin feature/meal-planner
+
+# merge to main (locally)
+git checkout main
+git pull origin main
+git merge --no-ff feature/meal-planner
+git push origin main
+```
+
