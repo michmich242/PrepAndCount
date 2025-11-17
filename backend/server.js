@@ -9,6 +9,8 @@ dotenv.config();
 const app = express();
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
+// Ensure CORS preflight responses are handled
+app.options('*', cors({ origin: true, credentials: true }));
 
 const PORT = parseInt(process.env.PORT || '5000', 10);
 const FATSECRET_CLIENT_ID = process.env.FATSECRET_CLIENT_ID || '';
@@ -288,6 +290,25 @@ app.post('/api/generate-meal-plan', async (req, res) => {
 
     const targets = computeTargets({ fitnessGoal, gender, weightKg, heightCm, age, activityLevel });
 
+    // Fast path to isolate OpenAI issues: skip AI and return mock plan
+    const testFlag = String(req.query.test || req.query.skipAi || '').toLowerCase();
+    if (testFlag === '1' || testFlag === 'true') {
+      const mockPlan = {
+        day1: {
+          breakfast: 'Oatmeal with berries',
+          lunch: 'Grilled chicken salad',
+          dinner: 'Salmon with quinoa and veggies',
+          snacks: ['Greek yogurt', 'Apple']
+        }
+      };
+      console.log(`[meal-plan][${reqId}] test-mode ok in ${Date.now() - startedAt}ms`);
+      return res.json({
+        calorieGoal: targets.calorieGoal,
+        macros: targets.macros,
+        plan: mockPlan
+      });
+    }
+
     const openaiKey = process.env.OPENAI_API_KEY;
     if (!openaiKey) {
       return res.status(500).json({ message: 'OPENAI_API_KEY is not configured on the server' });
@@ -342,7 +363,7 @@ app.post('/api/generate-meal-plan', async (req, res) => {
       plan
       // NOTE: FatSecret nutrition enrichment will be added in a follow-up step
     });
-    console.log(`[meal-plan][${reqId}] ok in ${Date.now() - startedAt}ms`);
+    // Note: code after return is unreachable; keep log before return if needed
   } catch (err) {
     console.error('[meal-plan] error', err);
     const message = err?.message || 'Unexpected error';
